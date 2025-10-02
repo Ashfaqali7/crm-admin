@@ -9,6 +9,7 @@ import {
   useSensor,
   useSensors,
   type DragEndEvent,
+  closestCenter,
 } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
 import { dealsService } from '../services/dealsService';
@@ -45,6 +46,10 @@ export function Deals() {
   });
 
   const sensors = useSensors(mouseSensor, touchSensor);
+  // Optionally include pointerWithin collision detection for better column drops
+  useEffect(() => {
+    // noop: placeholder in case we want to dynamically change sensors later
+  }, []);
 
   const fetchDeals = async () => {
     setLoading(true);
@@ -179,6 +184,7 @@ export function Deals() {
           sensors={sensors}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
+          collisionDetection={closestCenter}
         >
           <div
             style={{
