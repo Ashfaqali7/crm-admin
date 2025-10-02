@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
-import { 
-  List, 
-  Card, 
-  Checkbox, 
-  Button, 
-  Modal, 
-  Form, 
-  Input, 
-  DatePicker, 
-  Select, 
+import {
+  List,
+  Card,
+  Checkbox,
+  Button,
+  Modal,
+  Form,
+  Input,
+  DatePicker,
+  Select,
   Typography,
   Space,
   message,
@@ -114,44 +114,43 @@ export function Tasks() {
             Add Task
           </Button>
         </Space>
-<List
-  dataSource={tasks}
-  locale={{ emptyText: "No tasks yet. Create one to get started!" }}
-  renderItem={(task) => (
-    <List.Item style={{ padding: "16px 12px", borderBottom: "1px solid #f0f0f0" }}>
-      <Space direction="vertical" style={{ flex: 1 }}>
-        {/* Title & Status */}
-        <Space align="center" style={{ justifyContent: 'space-between', width: '100%' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Checkbox
-            checked={task.status === 'Done'}
-            onChange={(e) => handleStatusChange(task.id, e.target.checked)}
-          />
-          <Text delete={task.status === 'Done'} strong>
-            {task.title}
-          </Text>
-          </div>
-          {renderStatusTag(task.status)}
-        </Space>
+        <List
+          dataSource={tasks}
+          locale={{ emptyText: "No tasks yet. Create one to get started!" }}
+          renderItem={(task) => (
+            <List.Item style={{ padding: "16px 12px", borderBottom: "1px solid #f0f0f0" }}>
+              <Space direction="vertical" style={{ flex: 1 }}>
+                {/* Title & Status */}
+                <Space align="center" style={{ justifyContent: 'space-between', width: '100%' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Checkbox
+                      checked={task.status === 'Done'}
+                      onChange={(e) => handleStatusChange(task.id, e.target.checked)}
+                    />
+                    <Text delete={task.status === 'Done'} strong>
+                      {task.title}
+                    </Text>
+                  </div>
+                  {renderStatusTag(task.status)}
+                </Space>
 
-        {/* Description */}
-        {task.description && (
-          <Text type="secondary">{task.description}</Text>
-        )}
+                {/* Description */}
+                {task.description && (
+                  <Text type="secondary">{task.description}</Text>
+                )}
 
-        <Space style={{display:"flex",justifyContent:"space-between"}} size="large">
-          <Text type="secondary">
-           {leads.find(l => l.id === task.lead_id)?.name || 'Unknown'}
-          </Text>
-          <Text type="secondary">
-           {renderDueDate(task.due_date)}
-          </Text>
-        </Space>
-      </Space>
-    </List.Item>
-  )}
-/>
-
+                <Space style={{ display: "flex", justifyContent: "space-between" }} size="large">
+                  <Text type="secondary">
+                    {leads.find(l => l.id === task.lead_id)?.name || 'Unknown'}
+                  </Text>
+                  <Text type="secondary">
+                    {renderDueDate(task.due_date)}
+                  </Text>
+                </Space>
+              </Space>
+            </List.Item>
+          )}
+        />
         <Modal
           title="Add New Task"
           open={modalVisible}

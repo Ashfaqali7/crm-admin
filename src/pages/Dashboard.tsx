@@ -105,7 +105,6 @@ export function Dashboard() {
     meta: { value: { alias: 'Total Value' } },
     height: 300,
     autoFit: true,
-    color: '#5B8FF9',
   };
 
   const pieConfig = {
@@ -131,9 +130,8 @@ export function Dashboard() {
 
   return (
     <div>
-      <Title level={3}>Dashboard</Title>
-
-      <Row gutter={[16, 16]}>
+      <Title level={4} >Dashboard</Title>
+      <Row gutter={[16, 16]} >
         <Col xs={24} sm={12} md={6}>
           <Card>
             <Statistic title="Total Leads" value={totalLeads} />

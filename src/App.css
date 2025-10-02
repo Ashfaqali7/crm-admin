@@ -1,6 +1,6 @@
 #root {
   max-width: 100dvw; 
-  width: calc(100% - 8px);
+  width: calc(100%);
   text-align: center;
 }
 

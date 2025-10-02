@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import {  Button, Modal, Form, Input, InputNumber, Select, Typography, message } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { Button, Modal, Form, Input, InputNumber, Select, Typography, message, Spin, } from 'antd';
+import { PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import {
   DndContext,
   DragOverlay,
@@ -33,28 +33,28 @@ export function Deals() {
   const [modalVisible, setModalVisible] = useState(false);
   const [draggingDeal, setDraggingDeal] = useState<Deal | null>(null);
   const [form] = Form.useForm();
+  const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const mouseSensor = useSensor(MouseSensor, {
-    activationConstraint: {
-      distance: 10,
-    },
+    activationConstraint: { distance: 10 },
   });
-  
+
   const touchSensor = useSensor(TouchSensor, {
-    activationConstraint: {
-      delay: 250,
-      tolerance: 5,
-    },
+    activationConstraint: { delay: 250, tolerance: 5 },
   });
 
   const sensors = useSensors(mouseSensor, touchSensor);
 
   const fetchDeals = async () => {
+    setLoading(true);
     try {
       const data = await dealsService.getWithDetails();
       setDeals(data);
     } catch (error) {
-      message.error('Failed to fetch deals');
+      message.error('Failed to fetch deals. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -63,7 +63,7 @@ export function Deals() {
       const data = await leadsService.getAll();
       setLeads(data);
     } catch (error) {
-      message.error('Failed to fetch leads');
+      message.error('Failed to fetch leads. Please try again.');
     }
   };
 
@@ -73,14 +73,20 @@ export function Deals() {
   }, []);
 
   const handleCreate = async (values: Partial<Deal>) => {
+    setLoading(true);
     try {
       await dealsService.create(values);
-      message.success('Deal created successfully');
+      message.success({
+        content: 'Deal created successfully',
+        icon: <span role="img" aria-label="success">🎉</span>,
+      });
       setModalVisible(false);
       form.resetFields();
       fetchDeals();
     } catch (error) {
-      message.error('Failed to create deal');
+      message.error('Failed to create deal. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -101,7 +107,6 @@ export function Deals() {
     }
 
     try {
-      // If dropped onto a column (droppable id equals a stage)
       if (stages.includes(overId as typeof stages[number])) {
         const newStage = overId as typeof stages[number];
         if (draggedDeal.stage !== newStage) {
@@ -109,18 +114,16 @@ export function Deals() {
           await fetchDeals();
         }
       } else {
-        // Dropped onto another card: reorder within the list
-        const overDeal = deals.find(d => d.id === overId);
+        const overDeal = deals.find((d) => d.id === overId);
         if (overDeal && activeId !== overDeal.id) {
-          const oldIndex = deals.findIndex(d => d.id === activeId);
-          const newIndex = deals.findIndex(d => d.id === overDeal.id);
+          const oldIndex = deals.findIndex((d) => d.id === activeId);
+          const newIndex = deals.findIndex((d) => d.id === overId);
           const newDeals = arrayMove(deals, oldIndex, newIndex);
           setDeals(newDeals);
-          // Optionally persist ordering server-side if you have an order column
         }
       }
     } catch (error) {
-      message.error('Failed to update deal');
+      message.error('Failed to update deal. Please try again.');
     } finally {
       setDraggingDeal(null);
     }
@@ -133,16 +136,30 @@ export function Deals() {
     }
   };
 
+  const filteredDeals = deals.filter((deal) =>
+    deal.title?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   const groupedDeals = stages.reduce((acc, stage) => {
-    acc[stage] = deals.filter((deal) => deal.stage === stage);
+    acc[stage] = filteredDeals.filter((deal) => deal.stage === stage);
     return acc;
   }, {} as Record<typeof stages[number], Deal[]>);
 
   return (
-    <div>
-      <div style={{padding:"8px 16px"}} >
-        <div style={{ marginBottom: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Title level={4} >Deals Pipeline</Title>
+    <div style={{ padding: '24px', background: '#f0f2f5', minHeight: '100vh' }}>
+      <div style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Title level={3} style={{ margin: 0, color: '#1F1F1F' }}>
+          Deals Pipeline
+        </Title>
+        <div style={{ display: 'flex', gap: 16 }}>
+          <Input
+            placeholder="Search deals..."
+            prefix={<SearchOutlined />}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{ width: 200 }}
+            allowClear
+          />
           <Button
             type="primary"
             icon={<PlusOutlined />}
@@ -151,13 +168,27 @@ export function Deals() {
             Add Deal
           </Button>
         </div>
+      </div>
 
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: 50 }}>
+          <Spin size="large" />
+        </div>
+      ) : (
         <DndContext
           sensors={sensors}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
-          <div style={{ display: 'flex', gap: '16px', overflowX: 'auto', padding: '8px 0' }}>
+          <div
+            style={{
+              display: 'flex',
+              gap: 24,
+              overflowX: 'auto',
+              padding: '16px 0',
+              justifyContent: "space-between"
+            }}
+          >
             {stages.map((stage) => (
               <DealColumn
                 key={stage}
@@ -169,71 +200,89 @@ export function Deals() {
 
           <DragOverlay>
             {draggingDeal ? (
-              <DealCard deal={draggingDeal} />
+              <DealCard
+                deal={draggingDeal}
+
+              />
             ) : null}
           </DragOverlay>
         </DndContext>
+      )}
 
-        <Modal
-          title="Add New Deal"
-          open={modalVisible}
-          onOk={() => form.submit()}
-          onCancel={() => {
-            setModalVisible(false);
-            form.resetFields();
-          }}
+      <Modal
+        title="Add New Deal"
+        open={modalVisible}
+        onOk={() => form.submit()}
+        onCancel={() => {
+          setModalVisible(false);
+          form.resetFields();
+        }}
+        width={600}
+        okButtonProps={{ loading, type: 'primary' }}
+        cancelButtonProps={{ type: 'default' }}
+      >
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleCreate}
+          style={{ marginTop: 16 }}
         >
-          <Form
-            form={form}
-            layout="vertical"
-            onFinish={handleCreate}
+          <Form.Item
+            name="title"
+            label="Deal Title"
+            rules={[{ required: true, message: 'Please input the deal title!' }]}
+            tooltip="Enter a descriptive title for the deal"
           >
-            <Form.Item
-              name="title"
-              label="Title"
-              rules={[{ required: true, message: 'Please input the deal title!' }]}
-            >
-              <Input />
-            </Form.Item>
+            <Input placeholder="e.g., Annual Subscription Deal" />
+          </Form.Item>
 
-            <Form.Item
-              name="lead_id"
-              label="Related Lead"
-              rules={[{ required: true, message: 'Please select a lead!' }]}
+          <Form.Item
+            name="lead_id"
+            label="Related Lead"
+            rules={[{ required: true, message: 'Please select a lead!' }]}
+          >
+            <Select
+              placeholder="Select a lead"
+              showSearch
+              optionFilterProp="children"
             >
-              <Select>
-                {leads.map(lead => (
-                  <Option key={lead.id} value={lead.id}>{lead.name}</Option>
-                ))}
-              </Select>
-            </Form.Item>
+              {leads.map((lead) => (
+                <Option key={lead.id} value={lead.id}>
+                  {lead.name}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
 
-            <Form.Item
-              name="value"
-              label="Value"
-              rules={[{ required: true, message: 'Please input the deal value!' }]}
-            >
-              <InputNumber
-                style={{ width: '100%' }}
-                formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                parser={value => value!.replace(/\$\s?|(,*)/g, '')}
-              />
-            </Form.Item>
+          <Form.Item
+            name="value"
+            label="Deal Value"
+            rules={[{ required: true, message: 'Please input the deal value!' }]}
+            tooltip="Enter the deal value in USD"
+          >
+            <InputNumber
+              style={{ width: '100%' }}
+              formatter={(value) => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+              parser={(value) => value!.replace(/\$\s?|(,*)/g, '')}
+              placeholder="e.g., 5000"
+            />
+          </Form.Item>
 
-            <Form.Item
-              name="stage"
-              label="Stage"
-              initialValue="New"
-            >
-              <Select>
-                {stages.map(stage => (
-                  <Option key={stage} value={stage}>{stage}</Option>
-                ))}
-              </Select>
-            </Form.Item>
-          </Form>
-        </Modal>
-      </div>
+          <Form.Item
+            name="stage"
+            label="Stage"
+            initialValue="New"
+          >
+            <Select>
+              {stages.map((stage) => (
+                <Option key={stage} value={stage}>
+                  {stage}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 }
