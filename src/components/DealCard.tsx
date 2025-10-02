@@ -20,7 +20,7 @@ export function DealCard({ deal, style: parentStyle }: DealCardProps) {
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: deal.id });
+  } = useSortable({ id: String(deal.id) });
 
   // Memoize deal data to prevent unnecessary re-renders
   const memoizedDeal = useMemo(() => deal, [deal]);
@@ -54,7 +54,6 @@ export function DealCard({ deal, style: parentStyle }: DealCardProps) {
     <div
       ref={setNodeRef}
       style={style}
-      {...attributes}
       aria-label={`Deal: ${memoizedDeal.title}, Stage: ${memoizedDeal.stage}`}
     >
       <Card
@@ -74,13 +73,16 @@ export function DealCard({ deal, style: parentStyle }: DealCardProps) {
               {memoizedDeal.title}
             </Title>
             <Tooltip title="Drag to move">
-              <Button
-                type="text"
-                icon={<DragOutlined />}
+              <div
                 {...listeners}
-                style={{ cursor: 'grab' }}
+                {...attributes}
+                role="button"
+                tabIndex={0}
                 aria-label="Drag handle"
-              />
+                style={{ cursor: 'grab', display: 'inline-flex', alignItems: 'center', padding: 6 }}
+              >
+                <DragOutlined />
+              </div>
             </Tooltip>
           </div>
           <Space direction="horizontal" size={8} style={{ width: '100%' }}>
