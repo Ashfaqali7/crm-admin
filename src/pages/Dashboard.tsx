@@ -58,8 +58,7 @@ export function Dashboard() {
 
   return (
     <div>
-      <Title level={2}>Dashboard</Title>
-      
+      <Title level={3}>Dashboard</Title>   
       <Row gutter={[16, 16]}>
         <Col xs={24} sm={8}>
           <Card>
@@ -88,7 +87,7 @@ export function Dashboard() {
               seriesField="stage"
               padding="auto"
               width={500}
-              height={200}
+              height={300}
               autoFit
               axis={{
                 x: { title: { text: 'Stage' } },
