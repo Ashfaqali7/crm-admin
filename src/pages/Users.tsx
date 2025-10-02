@@ -79,7 +79,7 @@ export function Users() {
     {
       title: 'Status',
       key: 'status',
-      render: (text: string, record: Profile) => (
+      render: (_text: string, record: Profile) => (
         <Tag color={record.role === 'admin' ? 'gold' : 'green'}>
           {record.role.toUpperCase()}
         </Tag>

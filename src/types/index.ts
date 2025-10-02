@@ -16,6 +16,7 @@ export interface Lead {
   status: Status;
   assigned_to: string | null;
   created_at: string;
+  company?: string;
 }
 
 export interface Deal {

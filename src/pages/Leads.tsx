@@ -15,7 +15,6 @@ export function Leads() {
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [form] = Form.useForm();
-  const { profile } = useAuth();
 
   const fetchLeads = async () => {
     try {
@@ -71,6 +70,12 @@ export function Leads() {
       dataIndex: 'name',
       key: 'name',
       sorter: (a: Lead, b: Lead) => a.name.localeCompare(b.name),
+    },
+    {
+      title:"Company",
+      dataIndex: 'company',
+      key:"company",
+      sorter: (a: Lead, b: Lead) => (a.company || '').localeCompare(b.company || ''),
     },
     {
       title: 'Email',
