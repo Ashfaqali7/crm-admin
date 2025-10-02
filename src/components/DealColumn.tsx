@@ -17,6 +17,7 @@ interface DealColumnProps {
 export function DealColumn({ title, deals = [] }: DealColumnProps) {
   const { setNodeRef } = useDroppable({
     id: title,
+    data: { stage: title },
   });
 
   return (
@@ -34,7 +35,6 @@ export function DealColumn({ title, deals = [] }: DealColumnProps) {
       }}
     >
       <SortableContext
-        id={title}
         items={deals.map(deal => deal.id)}
         strategy={verticalListSortingStrategy}
       >

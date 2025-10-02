@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Card, Button, Modal, Form, Input, InputNumber, Select, Typography, message } from 'antd';
+import {  Button, Modal, Form, Input, InputNumber, Select, Typography, message } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import {
   DndContext,
@@ -10,11 +10,7 @@ import {
   useSensors,
   type DragEndEvent,
 } from '@dnd-kit/core';
-import {
-  SortableContext,
-  arrayMove,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
+import { arrayMove } from '@dnd-kit/sortable';
 import { dealsService } from '../services/dealsService';
 import { leadsService } from '../services/leadsService';
 import { DealCard } from '../components/DealCard';
@@ -90,34 +86,44 @@ export function Deals() {
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
-    
-    if (!over) return;
+    if (!over) {
+      setDraggingDeal(null);
+      return;
+    }
 
-    const draggedDeal = deals.find((deal) => deal.id === active.id);
-    if (!draggedDeal) return;
+    const activeId = active.id as string;
+    const overId = over.id as string | undefined;
 
-    // If dropping in a column (stage change)
-    if (stages.includes(over.id as typeof stages[number])) {
-      const newStage = over.id as typeof stages[number];
-      if (draggedDeal.stage !== newStage) {
-        try {
+    const draggedDeal = deals.find((deal) => deal.id === activeId);
+    if (!draggedDeal) {
+      setDraggingDeal(null);
+      return;
+    }
+
+    try {
+      // If dropped onto a column (droppable id equals a stage)
+      if (stages.includes(overId as typeof stages[number])) {
+        const newStage = overId as typeof stages[number];
+        if (draggedDeal.stage !== newStage) {
           await dealsService.update(draggedDeal.id, { stage: newStage });
-          fetchDeals();
-        } catch (error) {
-          message.error('Failed to update deal stage');
+          await fetchDeals();
+        }
+      } else {
+        // Dropped onto another card: reorder within the list
+        const overDeal = deals.find(d => d.id === overId);
+        if (overDeal && activeId !== overDeal.id) {
+          const oldIndex = deals.findIndex(d => d.id === activeId);
+          const newIndex = deals.findIndex(d => d.id === overDeal.id);
+          const newDeals = arrayMove(deals, oldIndex, newIndex);
+          setDeals(newDeals);
+          // Optionally persist ordering server-side if you have an order column
         }
       }
+    } catch (error) {
+      message.error('Failed to update deal');
+    } finally {
+      setDraggingDeal(null);
     }
-    // If dropping on another deal (reordering)
-    else if (active.id !== over.id) {
-      const oldIndex = deals.findIndex((deal) => deal.id === active.id);
-      const newIndex = deals.findIndex((deal) => deal.id === over.id);
-      
-      const newDeals = arrayMove(deals, oldIndex, newIndex);
-      setDeals(newDeals);
-    }
-    
-    setDraggingDeal(null);
   };
 
   const handleDragStart = (event: any) => {
@@ -134,9 +140,9 @@ export function Deals() {
 
   return (
     <div>
-      <Card>
-        <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Title level={2}>Deals Pipeline</Title>
+      <div style={{padding:"8px 16px"}} >
+        <div style={{ marginBottom: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Title level={4} >Deals Pipeline</Title>
           <Button
             type="primary"
             icon={<PlusOutlined />}
@@ -227,7 +233,7 @@ export function Deals() {
             </Form.Item>
           </Form>
         </Modal>
-      </Card>
+      </div>
     </div>
   );
 }
