@@ -28,19 +28,21 @@ A modern, responsive CRM (Customer Relationship Management) dashboard built with
 - **Task Management**: Assign and track tasks with due dates
 - **User Management**: Admin panel for managing team members
 - **Responsive Design**: Works on desktop, tablet, and mobile devices
-- **Dark/Light Theme**: Toggle between color schemes
+- **Dark/Light Theme**: Toggle between color schemes with custom theme tokens
+- **Protected Routes**: Role-based route protection for admin/user access control
 
 ## Tech Stack
 
-- **Frontend**: [React 18](https://reactjs.org/) with [TypeScript](https://www.typescriptlang.org/)
-- **UI Framework**: [Ant Design](https://ant.design/)
-- **State Management**: React Context API
+- **Frontend**: [React 19](https://reactjs.org/) with [TypeScript](https://www.typescriptlang.org/)
+- **UI Framework**: [Ant Design 5](https://ant.design/)
+- **State Management**: React Context API with custom hooks
 - **Charts**: [@ant-design/charts](https://charts.ant.design/)
 - **Drag & Drop**: [@dnd-kit](https://docs.dndkit.com/)
 - **Routing**: [React Router v6](https://reactrouter.com/)
 - **Build Tool**: [Vite](https://vitejs.dev/)
 - **Backend**: [Supabase](https://supabase.io/)
-- **Styling**: CSS Modules and Ant Design's built-in styling
+- **Styling**: CSS Modules and Ant Design's built-in styling with custom theme tokens
+- **Icons**: [@ant-design/icons](https://github.com/ant-design/ant-design-icons)
 
 ## Getting Started
 
@@ -92,6 +94,7 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 ```
 src/
+├── assets/               # Static assets (images, icons, etc.)
 ├── components/           # Reusable UI components
 ├── constants/            # Application constants
 ├── context/              # React context providers
@@ -127,6 +130,15 @@ Displays individual deal information in the deals pipeline.
 
 ### DealColumn
 Represents a column in the deals pipeline (e.g., New, In Progress, Won, Lost).
+
+### StatusTag
+A tag component for displaying status with color coding.
+
+### Navbar
+The top navigation bar component.
+
+### Sidebar
+The side navigation menu component.
 
 ## Services
 
