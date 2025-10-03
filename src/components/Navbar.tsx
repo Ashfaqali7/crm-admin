@@ -104,56 +104,55 @@ export function Navbar({ collapsed, toggleCollapsed }: NavbarProps) {
   );
 }
 
-// ✅ Define styles using antd-style
-const useStyles = createStyles(({ token, css }) => ({
-  header: css`
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 64px;
-    padding: ${token.paddingSM}px ${token.paddingLG}px;
-    background: ${token.colorBgContainer};
-    border-bottom: 1px solid ${token.colorBorder};
-    box-shadow: ${token.boxShadowSecondary};
-  `,
-  collapseBtn: css`
-    font-size: ${token.fontSizeLG}px;
-    width: 32px;
-    height: 32px;
-    border-radius: ${token.borderRadius}px;
-  `,
-  title: css`
-    margin: 0;
-    color: ${token.colorText};
-    font-size: ${token.fontSizeLG}px;
-    font-weight: ${token.fontWeightStrong};
-  `,
-  userInfo: css`
-    display: flex;
-    align-items: center;
-    gap: ${token.marginSM}px;
-    padding: ${token.paddingXS}px ${token.padding}px;
-    transition: all ${token.motionDurationMid};
-  `,
-  avatar: css`
-    background-color: ${token.colorPrimary};
-    border: 1px solid ${token.colorPrimary};
-  `,
-  userName: css`
-    font-size: ${token.fontSizeSM}px;
-    color: ${token.colorText};
-    line-height: 1.2;
-  `,
-  userRole: css`
-    font-size: 10px;
-    color: ${token.colorTextSecondary};
-    line-height: 1.2;
-  `,
-  dropdownBtn: css`
-    border-radius: ${token.borderRadius}px;
-    transition: all ${token.motionDurationMid};
-  `,
+const useStyles = createStyles(({ token }) => ({
+  header: {
+    position: "sticky",
+    top: 0,
+    zIndex: 10,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    height: 64,
+    padding: `${token.paddingSM}px ${token.paddingLG}px`,
+    background: token.colorBgContainer,
+    borderBottom: `1px solid ${token.colorBorder}`,
+    boxShadow: token.boxShadowSecondary,
+  },
+  collapseBtn: {
+    fontSize: token.fontSizeLG,
+    width: 32,
+    height: 32,
+    borderRadius: token.borderRadius,
+  },
+  title: {
+    margin: 0,
+    color: token.colorText,
+    fontSize: token.fontSizeLG,
+    fontWeight: token.fontWeightStrong,
+  },
+  userInfo: {
+    display: "flex",
+    alignItems: "center",
+    gap: token.marginSM,
+    padding: `${token.paddingXS}px ${token.padding}px`,
+    transition: `all ${token.motionDurationMid}`,
+  },
+  avatar: {
+    backgroundColor: token.colorPrimary,
+    border: `1px solid ${token.colorPrimary}`,
+  },
+  userName: {
+    fontSize: token.fontSizeSM,
+    color: token.colorText,
+    lineHeight: 1.2,
+  },
+  userRole: {
+    fontSize: 10,
+    color: token.colorTextSecondary,
+    lineHeight: 1.2,
+  },
+  dropdownBtn: {
+    borderRadius: token.borderRadius,
+    transition: `all ${token.motionDurationMid}`,
+  },
 }));
