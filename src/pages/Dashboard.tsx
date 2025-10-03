@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Card, Row, Col, Statistic, Table, Typography } from 'antd';
+import { Card, Row, Col, Statistic, Table, Typography, theme } from 'antd';
 import { Column, Pie, Line } from '@ant-design/charts';
 import { leadsService } from '../services/leadsService';
 import { dealsService } from '../services/dealsService';
@@ -19,6 +19,7 @@ export function Dashboard() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [recentLeads, setRecentLeads] = useState<Lead[]>([]);
   const [recentTasks, setRecentTasks] = useState<Task[]>([]);
+  const { token } = theme.useToken();
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -217,85 +218,435 @@ export function Dashboard() {
   };
 
   return (
-    <div style={{ padding: 16 }}>
-      <Title level={4} >Dashboard</Title>
-      <Row gutter={[16, 16]} >
-        <Col xs={24} sm={12} md={6}>
-          <Card>
-            <Statistic title="Total Leads" value={totalLeads} />
-            <Text type="secondary">New leads collected</Text>
+    <div style={{
+      padding: token.paddingXS,
+      background: token.colorBgLayout,
+      minHeight: '100%',
+    }}>
+      {/* Dashboard Header */}
+      <div style={{
+        marginBottom: token.marginXL,
+      }}>
+        <Title
+          level={3}
+          style={{
+            margin: 0,
+            color: token.colorText,
+            fontSize: 32,
+            fontWeight: token.fontWeightStrong,
+          }}
+        >
+          Dashboard
+        </Title>
+        <Text
+          type="secondary"
+          style={{
+            fontSize: token.fontSizeLG,
+            display: 'block',
+            marginTop: token.marginXS,
+          }}
+        >
+          Welcome back! Here's an overview of your CRM data.
+        </Text>
+      </div>
+
+      {/* Statistics Cards */}
+      <Row gutter={[token.marginLG, token.marginLG]}>
+        <Col xs={24} sm={12} lg={6}>
+          <Card
+            style={{
+              background: `linear-gradient(135deg, ${token.colorPrimary} 0%, ${token.colorPrimary}E0 100%)`,
+              borderRadius: token.borderRadiusLG,
+              boxShadow: token.boxShadow,
+            }}
+            styles={{
+              body: {
+                padding: token.paddingLG,
+              }
+            }}
+          >
+            <Statistic
+              title={
+                <Text style={{
+                  color: token.colorTextLightSolid,
+                  fontSize: token.fontSizeSM,
+                  fontWeight: token.fontWeightStrong,
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.5,
+                }}>
+                  Total Leads
+                </Text>
+              }
+              value={totalLeads}
+              valueStyle={{
+                color: token.colorTextLightSolid,
+                fontSize: 28,
+                fontWeight: token.fontWeightStrong,
+              }}
+            />
+            <Text style={{
+              color: token.colorTextLightSolid,
+              fontSize: token.fontSizeSM,
+              opacity: 0.8,
+            }}>
+              New leads collected
+            </Text>
           </Card>
         </Col>
-        <Col xs={24} sm={12} md={6}>
-          <Card>
-            <Statistic title="Total Deals" value={totalDeals} />
-            <Text type="secondary">Deals in pipeline</Text>
+
+        <Col xs={24} sm={12} lg={6}>
+          <Card
+            style={{
+              background: `linear-gradient(135deg, ${token.colorSuccess} 0%, ${token.colorSuccess}E0 100%)`,
+              borderRadius: token.borderRadiusLG,
+              boxShadow: token.boxShadow,
+            }}
+            styles={{
+              body: {
+                padding: token.paddingLG,
+              }
+            }}
+          >
+            <Statistic
+              title={
+                <Text style={{
+                  color: token.colorTextLightSolid,
+                  fontSize: token.fontSizeSM,
+                  fontWeight: token.fontWeightStrong,
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.5,
+                }}>
+                  Total Deals
+                </Text>
+              }
+              value={totalDeals}
+              valueStyle={{
+                color: token.colorTextLightSolid,
+                fontSize: 28,
+                fontWeight: token.fontWeightStrong,
+              }}
+            />
+            <Text style={{
+              color: token.colorTextLightSolid,
+              fontSize: token.fontSizeSM,
+              opacity: 0.8,
+            }}>
+              Deals in pipeline
+            </Text>
           </Card>
         </Col>
-        <Col xs={24} sm={12} md={6}>
-          <Card>
-            <Statistic title="Total Deal Value" value={totalDealValue} precision={0} />
-            <Text type="secondary">Combined value of deals</Text>
+
+        <Col xs={24} sm={12} lg={6}>
+          <Card
+            style={{
+              background: `linear-gradient(135deg, ${token.colorWarning} 0%, ${token.colorWarning}E0 100%)`,
+              borderRadius: token.borderRadiusLG,
+              boxShadow: token.boxShadow,
+            }}
+            styles={{
+              body: {
+                padding: token.paddingLG,
+              }
+            }}
+          >
+            <Statistic
+              title={
+                <Text style={{
+                  color: token.colorTextLightSolid,
+                  fontSize: token.fontSizeSM,
+                  fontWeight: token.fontWeightStrong,
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.5,
+                }}>
+                  Deal Value
+                </Text>
+              }
+              value={totalDealValue}
+              precision={0}
+              prefix="$"
+              valueStyle={{
+                color: token.colorTextLightSolid,
+                fontSize: 28,
+                fontWeight: token.fontWeightStrong,
+              }}
+            />
+            <Text style={{
+              color: token.colorTextLightSolid,
+              fontSize: token.fontSizeSM,
+              opacity: 0.8,
+            }}>
+              Combined value of deals
+            </Text>
           </Card>
         </Col>
-        <Col xs={24} sm={12} md={6}>
-          <Card>
-            <Statistic title="Conversion" value={`${conversionRate}%`} />
-            <Text type="secondary">Won deals rate</Text>
+
+        <Col xs={24} sm={12} lg={6}>
+          <Card
+            style={{
+              background: `linear-gradient(135deg, ${token.colorInfo} 0%, ${token.colorInfo}E0 100%)`,
+              borderRadius: token.borderRadiusLG,
+              boxShadow: token.boxShadow,
+            }}
+            styles={{
+              body: {
+                padding: token.paddingLG,
+              }
+            }}
+          >
+            <Statistic
+              title={
+                <Text style={{
+                  color: token.colorTextLightSolid,
+                  fontSize: token.fontSizeSM,
+                  fontWeight: token.fontWeightStrong,
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.5,
+                }}>
+                  Conversion Rate
+                </Text>
+              }
+              value={conversionRate}
+              suffix="%"
+              valueStyle={{
+                color: token.colorTextLightSolid,
+                fontSize: 28,
+                fontWeight: token.fontWeightStrong,
+              }}
+            />
+            <Text style={{
+              color: token.colorTextLightSolid,
+              fontSize: token.fontSizeSM,
+              opacity: 0.8,
+            }}>
+              Won deals rate
+            </Text>
           </Card>
         </Col>
       </Row>
-      <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
+
+      {/* Charts Section */}
+      <Row gutter={[token.marginLG, token.marginLG]} style={{ marginTop: token.marginLG }}>
         <Col xs={24} lg={12} xl={10}>
-          <Card title="Deals by Stage (Total Value)">
+          <Card
+            title={
+              <Text style={{
+                fontSize: token.fontSizeLG,
+                fontWeight: token.fontWeightStrong,
+                color: token.colorText,
+              }}>
+                Deals by Stage (Total Value)
+              </Text>
+            }
+            style={{
+              borderRadius: token.borderRadiusLG,
+              boxShadow: token.boxShadow,
+            }}
+            styles={{
+              body: {
+                padding: token.paddingLG,
+              }
+            }}
+          >
             <Column {...columnConfig} />
           </Card>
         </Col>
 
         <Col xs={24} lg={12} xl={7}>
-          <Card title="Leads by Status">
+          <Card
+            title={
+              <Text style={{
+                fontSize: token.fontSizeLG,
+                fontWeight: token.fontWeightStrong,
+                color: token.colorText,
+              }}>
+                Leads by Status
+              </Text>
+            }
+            style={{
+              borderRadius: token.borderRadiusLG,
+              boxShadow: token.boxShadow,
+            }}
+            styles={{
+              body: {
+                padding: token.paddingLG,
+              }
+            }}
+          >
             <Pie {...pieConfig} />
           </Card>
         </Col>
 
-        <Col xs={24} lg={24} xl={7}>
-          <Card title="Monthly Revenue">
+        <Col xs={24} xl={7}>
+          <Card
+            title={
+              <Text style={{
+                fontSize: token.fontSizeLG,
+                fontWeight: token.fontWeightStrong,
+                color: token.colorText,
+              }}>
+                Monthly Revenue
+              </Text>
+            }
+            style={{
+              borderRadius: token.borderRadiusLG,
+              boxShadow: token.boxShadow,
+            }}
+            styles={{
+              body: {
+                padding: token.paddingLG,
+              }
+            }}
+          >
             <Line {...lineConfig} />
           </Card>
         </Col>
       </Row>
-      {/* Tasks section */}
-      <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
+
+      {/* Tasks Analytics Section */}
+      <Row gutter={[token.marginLG, token.marginLG]} style={{ marginTop: token.marginLG }}>
         <Col xs={24} lg={12} xl={8}>
-          <Card title="Top Clients by Task Count">
+          <Card
+            title={
+              <Text style={{
+                fontSize: token.fontSizeLG,
+                fontWeight: token.fontWeightStrong,
+                color: token.colorText,
+              }}>
+                Top Clients by Task Count
+              </Text>
+            }
+            style={{
+              borderRadius: token.borderRadiusLG,
+              boxShadow: token.boxShadow,
+            }}
+            styles={{
+              body: {
+                padding: token.paddingLG,
+              }
+            }}
+          >
             <Column {...topClientsConfig} />
           </Card>
         </Col>
 
         <Col xs={24} lg={12} xl={8}>
-          <Card title="Tasks by Status">
+          <Card
+            title={
+              <Text style={{
+                fontSize: token.fontSizeLG,
+                fontWeight: token.fontWeightStrong,
+                color: token.colorText,
+              }}>
+                Tasks by Status
+              </Text>
+            }
+            style={{
+              borderRadius: token.borderRadiusLG,
+              boxShadow: token.boxShadow,
+            }}
+            styles={{
+              body: {
+                padding: token.paddingLG,
+              }
+            }}
+          >
             <Pie {...tasksStatusPieConfig} />
           </Card>
         </Col>
 
-        <Col xs={24} lg={24} xl={8}>
-          <Card title="Tasks Over Time">
+        <Col xs={24} xl={8}>
+          <Card
+            title={
+              <Text style={{
+                fontSize: token.fontSizeLG,
+                fontWeight: token.fontWeightStrong,
+                color: token.colorText,
+              }}>
+                Tasks Over Time
+              </Text>
+            }
+            style={{
+              borderRadius: token.borderRadiusLG,
+              boxShadow: token.boxShadow,
+            }}
+            styles={{
+              body: {
+                padding: token.paddingLG,
+              }
+            }}
+          >
             <Line {...tasksLineConfig} />
           </Card>
         </Col>
       </Row>
 
-      <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
-        <Col xs={24} lg={24}>
-          <Card title="Recent Tasks">
-            <Table dataSource={recentTasks} columns={taskColumns} rowKey="id" pagination={false} />
+      {/* Recent Data Tables */}
+      <Row gutter={[token.marginLG, token.marginLG]} style={{ marginTop: token.marginLG }}>
+        <Col xs={24} lg={12}>
+          <Card
+            title={
+              <Text style={{
+                fontSize: token.fontSizeLG,
+                fontWeight: token.fontWeightStrong,
+                color: token.colorText,
+              }}>
+                Recent Tasks
+              </Text>
+            }
+            style={{
+              borderRadius: token.borderRadiusLG,
+              boxShadow: token.boxShadow,
+            }}
+            styles={{
+              body: {
+                padding: token.paddingLG,
+              }
+            }}
+          >
+            <Table
+              dataSource={recentTasks}
+              columns={taskColumns}
+              rowKey="id"
+              pagination={false}
+              size="small"
+              style={{
+                borderRadius: token.borderRadius,
+              }}
+            />
           </Card>
         </Col>
-      </Row>
-      <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
-        <Col xs={24} lg={24}>
-          <Card title="Recent Leads">
-            <Table dataSource={recentLeads} columns={leadColumns} rowKey="id" pagination={false} />
+
+        <Col xs={24} lg={12}>
+          <Card
+            title={
+              <Text style={{
+                fontSize: token.fontSizeLG,
+                fontWeight: token.fontWeightStrong,
+                color: token.colorText,
+              }}>
+                Recent Leads
+              </Text>
+            }
+            style={{
+              borderRadius: token.borderRadiusLG,
+              boxShadow: token.boxShadow,
+            }}
+            styles={{
+              body: {
+                padding: token.paddingLG,
+              }
+            }}
+          >
+            <Table
+              dataSource={recentLeads}
+              columns={leadColumns}
+              rowKey="id"
+              pagination={false}
+              size="small"
+              style={{
+                borderRadius: token.borderRadius,
+              }}
+            />
           </Card>
         </Col>
       </Row>

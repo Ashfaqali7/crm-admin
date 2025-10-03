@@ -25,7 +25,7 @@ export function AppLayout() {
         onCollapse={setCollapsed}
         breakpoint="lg"
         collapsedWidth={80}
-        width={280}
+        width={200}
         className={`${styles.sider} ${collapsed ? styles.siderCollapsed : ''}`}
         trigger={null}
       >

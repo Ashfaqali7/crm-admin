@@ -18,6 +18,7 @@ import {
   Input as SearchInput,
   Tooltip,
   Dropdown,
+  theme,
   type MenuProps,
 } from 'antd';
 import {
@@ -39,6 +40,8 @@ const { Option } = Select;
 const { TextArea } = Input;
 
 export function Tasks() {
+  const { token } = theme.useToken();
+
   const [tasks, setTasks] = useState<Task[]>([]);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
@@ -138,37 +141,61 @@ export function Tasks() {
   };
 
   const renderStatusTag = (status: string) => {
-    switch (status) {
-      case 'Done':
-        return (
-          <Tag color="green" icon={<CheckCircleOutlined />}>
-            Done
-          </Tag>
-        );
-      case 'In Progress':
-        return (
-          <Tag color="yellow" icon={<CheckCircleOutlined />}>
-            In Progress
-          </Tag>
-        );
-      default:
-        return (
-          <Tag color="blue" icon={<CheckCircleOutlined />}>
-            Pending
-          </Tag>
-        );
-    }
+    const statusConfig = {
+      'Done': {
+        color: 'success' as const,
+        text: 'Done'
+      },
+      'In Progress': {
+        color: 'warning' as const,
+        text: 'In Progress'
+      },
+      'Pending': {
+        color: 'processing' as const,
+        text: 'Pending'
+      }
+    };
+
+    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.Pending;
+
+    return (
+      <Tag
+        color={config.color}
+        icon={<CheckCircleOutlined />}
+        style={{
+          borderRadius: token.borderRadius,
+          fontSize: token.fontSizeSM,
+          padding: `${token.paddingXXS}px ${token.paddingXS}px`,
+          fontWeight: token.fontWeightStrong
+        }}
+      >
+        {config.text}
+      </Tag>
+    );
   };
 
   const renderDueDate = (due_date: string) => {
     const date = dayjs(due_date);
     const isOverdue = date.isBefore(dayjs(), 'day');
     const isToday = date.isSame(dayjs(), 'day');
+
     return (
-      <Space>
-        <CalendarOutlined style={{ color: isOverdue ? '#ff4d4f' : isToday ? '#fa8c16' : undefined }} />
-        <Text type={isOverdue ? 'danger' : isToday ? 'warning' : undefined}>
-          {date.format('MMMM D, YYYY')}
+      <Space style={{ gap: token.paddingXXS }}>
+        <CalendarOutlined
+          style={{
+            color: isOverdue ? token.colorError : isToday ? token.colorWarning : token.colorTextSecondary,
+            fontSize: token.fontSizeSM
+          }}
+        />
+        <Text
+          type={isOverdue ? 'danger' : isToday ? 'warning' : undefined}
+          style={{
+            fontSize: token.fontSizeSM,
+            color: isOverdue ? token.colorError : isToday ? token.colorWarning : token.colorTextSecondary,
+            fontWeight: isOverdue || isToday ? token.fontWeightStrong : 'normal'
+          }}
+        >
+          {date.format('MMM D, YYYY')}
         </Text>
       </Space>
     );
@@ -206,24 +233,30 @@ export function Tasks() {
   ];
 
   return (
-    <div style={{ minHeight: '100vh' }}>
-      <Card
-        style={{
-          borderRadius: 8,
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-          background: '#fff',
-        }}
-        bodyStyle={{ padding: 24 }}
+    <div style={{
+      minHeight: '100vh',
+      backgroundColor: token.colorBgLayout
+    }}>
+      <div
+
       >
         <Space
           style={{
-            marginBottom: 24,
+            marginBottom: token.marginXXL,
             justifyContent: 'space-between',
             width: '100%',
             flexWrap: 'wrap',
+            gap: token.paddingLG,
           }}
         >
-          <Title level={3} style={{ margin: 0, color: '#1F1F1F' }}>
+          <Title
+            level={3}
+            style={{
+              margin: 0,
+              color: token.colorTextHeading,
+              fontWeight: token.fontWeightStrong
+            }}
+          >
             Tasks
           </Title>
           <Space>
@@ -255,7 +288,11 @@ export function Tasks() {
         </Space>
 
         {loading ? (
-          <div style={{ textAlign: 'center', padding: 50 }}>
+          <div style={{
+            textAlign: 'center',
+            padding: token.paddingXL,
+            minHeight: token.controlHeightLG * 4
+          }}>
             <Spin size="large" />
           </div>
         ) : (
@@ -280,16 +317,16 @@ export function Tasks() {
             renderItem={(task) => (
               <List.Item
                 style={{
-                  padding: '16px',
-                  marginBottom: 8,
-                  border: '1px solid #a19595ff',
-                  borderRadius: 6,
-                  transition: 'background 0.3s',
-                  background: task.status === 'Done' ? '#f5f5f5' : '#fff',
+                  padding: token.paddingLG,
+                  marginBottom: token.marginSM,
+                  border: `${token.lineWidth}px ${token.lineType} ${token.colorBorder}`,
+                  borderRadius: token.borderRadiusLG,
+                  transition: `background-color ${token.motionDurationMid}`,
+                  backgroundColor: task.status === 'Done' ? token.colorFillAlter : token.colorBgContainer,
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = '#fafafa')}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = token.colorFillSecondary)}
                 onMouseLeave={(e) =>
-                  (e.currentTarget.style.background = task.status === 'Done' ? '#f5f5f5' : '#fff')
+                  (e.currentTarget.style.backgroundColor = task.status === 'Done' ? token.colorFillAlter : token.colorBgContainer)
                 }
                 actions={[
                   <Tooltip title="Edit Task">
@@ -311,9 +348,15 @@ export function Tasks() {
                   </Tooltip>,
                 ]}
               >
-                <Space direction="vertical" style={{ flex: 1 }}>
+                <Space direction="vertical" style={{ flex: 1, width: '100%' }}>
                   <Space align="center" style={{ justifyContent: 'space-between', width: '100%' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: token.paddingSM,
+                      minWidth: 0,
+                      flex: 1
+                    }}>
                       <Checkbox
                         checked={task.status === 'Done'}
                         onChange={(e) => handleStatusChange(task.id, e.target.checked)}
@@ -321,7 +364,17 @@ export function Tasks() {
                       />
                       <Title
                         level={5}
-                        style={{ margin: 0, textDecoration: task.status === 'Done' ? 'line-through' : 'none' }}
+                        style={{
+                          margin: 0,
+                          textDecoration: task.status === 'Done' ? 'line-through' : 'none',
+                          color: token.colorText,
+                          fontSize: token.fontSizeLG,
+                          lineHeight: token.lineHeightLG,
+                          flex: 1,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
+                        }}
                       >
                         {task.title}
                       </Title>
@@ -329,15 +382,36 @@ export function Tasks() {
                     {renderStatusTag(task.status)}
                   </Space>
                   {task.description && (
-                    <Text type="secondary" style={{ display: 'block', marginTop: 8 }}>
+                    <Text
+                      type="secondary"
+                      style={{
+                        display: 'block',
+                        marginTop: token.marginXS,
+                        color: token.colorTextSecondary,
+                        lineHeight: token.lineHeight
+                      }}
+                    >
                       {task.description}
                     </Text>
                   )}
                   <Space
-                    style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}
-                    size="large"
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      marginTop: token.marginSM,
+                      width: '100%',
+                      flexWrap: 'wrap',
+                      gap: token.paddingSM
+                    }}
+                    size={token.marginSM}
                   >
-                    <Text type="secondary">
+                    <Text
+                      type="secondary"
+                      style={{
+                        color: token.colorTextSecondary,
+                        fontSize: token.fontSizeSM
+                      }}
+                    >
                       <strong>Lead:</strong> {leads.find((l) => l.id === task.lead_id)?.name || 'Unknown'}
                     </Text>
                     {renderDueDate(task.due_date)}
@@ -349,7 +423,15 @@ export function Tasks() {
         )}
 
         <Modal
-          title={editingTaskId ? 'Edit Task' : 'Add New Task'}
+          title={
+            <div style={{
+              fontSize: token.fontSizeLG,
+              fontWeight: token.fontWeightStrong,
+              color: token.colorTextHeading
+            }}>
+              {editingTaskId ? 'Edit Task' : 'Add New Task'}
+            </div>
+          }
           open={modalVisible}
           onOk={() => form.submit()}
           onCancel={() => {
@@ -358,15 +440,38 @@ export function Tasks() {
             form.resetFields();
           }}
           okText={editingTaskId ? 'Update Task' : 'Create Task'}
-          okButtonProps={{ loading, type: 'primary' }}
-          cancelButtonProps={{ type: 'default' }}
-          width={600}
+          okButtonProps={{
+            loading,
+            type: 'primary',
+            size: 'middle'
+          }}
+          cancelButtonProps={{
+            type: 'default',
+            size: 'middle'
+          }}
+          width={640}
+          styles={{
+            header: {
+              padding: token.paddingLG,
+              paddingBottom: token.paddingMD,
+              borderBottom: `${token.lineWidth}px ${token.lineType} ${token.colorBorderSecondary}`
+            },
+            body: {
+              padding: token.paddingLG
+            },
+            footer: {
+              padding: token.paddingMD,
+              paddingTop: token.paddingLG,
+              borderTop: `${token.lineWidth}px ${token.lineType} ${token.colorBorderSecondary}`
+            }
+          }}
         >
           <Form
             form={form}
             layout="vertical"
             onFinish={handleCreateOrUpdate}
-            style={{ marginTop: 16 }}
+            style={{ marginTop: token.marginLG }}
+            size="middle"
           >
             <Form.Item name="id" noStyle>
               <Input type="hidden" />
@@ -413,17 +518,18 @@ export function Tasks() {
                 name="status"
                 label="Status"
                 initialValue="Pending"
+                rules={[{ required: true, message: 'Please select a status!' }]}
               >
-                <Select>
+                <Select placeholder="Select task status">
                   <Option value="Pending">Pending</Option>
-                  <Option value="Pending">In Progress</Option>
+                  <Option value="In Progress">In Progress</Option>
                   <Option value="Done">Done</Option>
                 </Select>
               </Form.Item>
             )}
           </Form>
         </Modal>
-      </Card>
+      </div>
     </div>
   );
 }

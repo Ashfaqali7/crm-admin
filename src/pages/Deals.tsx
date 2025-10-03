@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useRef } from 'react';
-import { Button, Modal, Form, Input, InputNumber, Select, Typography, Spin, Alert, Tag, Space, Divider, Tooltip } from 'antd';
+import { Button, Modal, Form, Input, InputNumber, Select, Typography, Spin, Alert, Tag, Space, Divider, Tooltip, theme } from 'antd';
 import { PlusOutlined, SearchOutlined, ReloadOutlined, FilterOutlined } from '@ant-design/icons';
 import {
   DndContext,
@@ -26,15 +26,16 @@ const { Option } = Select;
 
 
 export function Deals() {
+  // Access Ant Design theme tokens for consistent styling
+  const { token } = theme.useToken();
+
   const { deals, leads, loading, error, setError, fetchDeals, updateDeal, createDeal } = useDealsData();
   const [modalVisible, setModalVisible] = useState(false);
   const [editDealId, setEditDealId] = useState<string | null>(null);
   const [draggingDeal, setDraggingDeal] = useState<Deal | null>(null);
   const [form] = Form.useForm();
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedStage, setSelectedStage] = useState<string | null>(null);
-  const abortControllerRef = useRef<AbortController | null>(null);
-  const theme = useTheme();
+  const themeContext = useTheme();
 
   // Debounced search query for better performance
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
@@ -91,7 +92,7 @@ export function Deals() {
         if (draggedDeal.stage !== newStage) {
           const success = await updateDeal(draggedDeal.id, { stage: newStage });
           if (success) {
-            theme.showBanner(`Deal moved to ${newStage}`, 'success');
+            themeContext.showBanner(`Deal moved to ${newStage}`, 'success');
           }
         }
       } else {
@@ -102,17 +103,17 @@ export function Deals() {
           if (draggedDeal.stage !== overDeal.stage) {
             const success = await updateDeal(draggedDeal.id, { stage: overDeal.stage });
             if (success) {
-              theme.showBanner(`Deal moved to ${overDeal.stage}`, 'success');
+              themeContext.showBanner(`Deal moved to ${overDeal.stage}`, 'success');
             }
           } else if (activeId !== overDeal.id) {
             // Reorder within the same stage - handled by optimistic update
             // The actual reordering will be handled by the backend
-            theme.showBanner('Deal reordered successfully', 'success');
+            themeContext.showBanner('Deal reordered successfully', 'success');
           }
         }
       }
     } catch (error) {
-      theme.showBanner('Failed to update deal. Please try again.', 'error');
+      themeContext.showBanner('Failed to update deal. Please try again.', 'error');
     } finally {
       setDraggingDeal(null);
     }
@@ -174,7 +175,10 @@ export function Deals() {
   }, [groupedDeals]);
 
   return (
-    <div style={{ minHeight: '100vh' }}>
+    <div style={{
+      minHeight: '100vh',
+      backgroundColor: token.colorBgLayout
+    }}>
       {/* Error Alert */}
       {error && (
         <Alert
@@ -184,34 +188,67 @@ export function Deals() {
           showIcon
           closable
           onClose={() => setError(null)}
-          style={{ marginBottom: 16 }}
+          style={{
+            marginBottom: token.marginLG,
+            borderRadius: token.borderRadiusLG
+          }}
         />
       )}
 
       {/* Header Section */}
       <div style={{
-        marginBottom: 24,
-        background: '#fff',
-        padding: '20px 24px',
-        borderRadius: 8,
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-        border: '1px solid #e9ecef'
+        marginBottom: token.marginXXL,
+        backgroundColor: token.colorBgContainer,
+        padding: token.paddingXL,
+        borderRadius: token.borderRadiusLG,
+        boxShadow: token.boxShadow,
+        border: `${token.lineWidth}px ${token.lineType} ${token.colorBorderSecondary}`
       }}>
         <div style={{
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           flexWrap: 'wrap',
-          gap: 16
+          gap: token.paddingLG
         }}>
           <div>
-            <Title level={3} style={{ margin: 0, textAlign: "start", fontWeight: 600 }}>
+            <Title
+              level={3}
+              style={{
+                margin: 0,
+                color: token.colorTextHeading,
+                fontWeight: token.fontWeightStrong
+              }}
+            >
               Deals Pipeline
             </Title>
-            <div style={{ marginTop: 8 }}>
-              <Space size="large">
-                <Text type="secondary">
-                  <strong>{filteredDeals.length}</strong> deals • <strong>${totalValue.toLocaleString()}</strong> total value
+            <div style={{ marginTop: token.marginXS }}>
+              <Space size={token.marginLG}>
+                <Text
+                  type="secondary"
+                  style={{
+                    color: token.colorTextSecondary,
+                    fontSize: token.fontSizeLG
+                  }}
+                >
+                  <Text
+                    strong
+                    style={{
+                      color: token.colorText,
+                      fontSize: token.fontSizeLG
+                    }}
+                  >
+                    {filteredDeals.length}
+                  </Text> deals •{' '}
+                  <Text
+                    strong
+                    style={{
+                      color: token.colorText,
+                      fontSize: token.fontSizeLG
+                    }}
+                  >
+                    ${totalValue.toLocaleString()}
+                  </Text> total value
                 </Text>
               </Space>
             </div>
@@ -247,23 +284,42 @@ export function Deals() {
         </div>
 
         {/* Stage Summary */}
-        <div style={{ marginTop: 20 }}>
-          <Space size="middle" wrap>
+        <div style={{ marginTop: token.marginLG }}>
+          <Space size={token.marginMD} wrap>
             {dealsByStage.map(({ stage, count, value }) => (
-              <div key={stage} style={{
-                textAlign: 'center',
-                padding: '8px 16px',
-                background: count > 0 ? '#f0f9ff' : '#f8f9fa',
-                borderRadius: 6,
-                border: `1px solid ${count > 0 ? '#e0f2fe' : '#e9ecef'}`
-              }}>
-                <div style={{ fontSize: 12, color: '#6c757d', marginBottom: 4 }}>
+              <div
+                key={stage}
+                style={{
+                  textAlign: 'center',
+                  padding: `${token.paddingSM}px ${token.paddingLG}px`,
+                  backgroundColor: count > 0 ? token.colorPrimaryBg : token.colorFillSecondary,
+                  borderRadius: token.borderRadiusLG,
+                  border: `${token.lineWidth}px ${token.lineType} ${count > 0 ? token.colorPrimaryBgHover : token.colorBorderSecondary}`,
+                  minWidth: token.controlHeightLG * 2,
+                  transition: `all ${token.motionDurationMid}`
+                }}
+              >
+                <div style={{
+                  fontSize: token.fontSizeSM,
+                  color: token.colorTextSecondary,
+                  marginBottom: token.marginXS,
+                  fontWeight: token.fontWeightStrong
+                }}>
                   {stage}
                 </div>
-                <div style={{ fontSize: 16, fontWeight: 600, color: '#495057' }}>
+                <div style={{
+                  fontSize: token.fontSizeXL,
+                  fontWeight: token.fontWeightStrong,
+                  color: token.colorText,
+                  lineHeight: token.lineHeightSM
+                }}>
                   {count}
                 </div>
-                <div style={{ fontSize: 12, color: '#6c757d' }}>
+                <div style={{
+                  fontSize: token.fontSizeSM,
+                  color: token.colorTextSecondary,
+                  marginTop: token.marginXXS
+                }}>
                   ${value.toLocaleString()}
                 </div>
               </div>
@@ -273,7 +329,14 @@ export function Deals() {
       </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: 50 }}>
+        <div style={{
+          textAlign: 'center',
+          padding: token.paddingXL,
+          minHeight: token.controlHeightLG * 6,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}>
           <Spin size="large" />
         </div>
       ) : (
@@ -314,7 +377,15 @@ export function Deals() {
       )}
 
       <Modal
-        title={editDealId ? 'Update Deal' : 'Add New Deal'}
+        title={
+          <div style={{
+            fontSize: token.fontSizeLG,
+            fontWeight: token.fontWeightStrong,
+            color: token.colorTextHeading
+          }}>
+            {editDealId ? 'Update Deal' : 'Add New Deal'}
+          </div>
+        }
         open={modalVisible}
         onOk={() => form.submit()}
         okText={editDealId ? 'Update' : 'Add'}
@@ -323,15 +394,38 @@ export function Deals() {
           setEditDealId(null);
           form.resetFields();
         }}
-        width={600}
-        okButtonProps={{ loading, type: 'primary' }}
-        cancelButtonProps={{ type: 'default' }}
+        width={640}
+        okButtonProps={{
+          loading,
+          type: 'primary',
+          size: 'middle'
+        }}
+        cancelButtonProps={{
+          type: 'default',
+          size: 'middle'
+        }}
+        styles={{
+          header: {
+            padding: token.paddingLG,
+            paddingBottom: token.paddingMD,
+            borderBottom: `${token.lineWidth}px ${token.lineType} ${token.colorBorderSecondary}`
+          },
+          body: {
+            padding: token.paddingLG
+          },
+          footer: {
+            padding: token.paddingMD,
+            paddingTop: token.paddingLG,
+            borderTop: `${token.lineWidth}px ${token.lineType} ${token.colorBorderSecondary}`
+          }
+        }}
       >
         <Form
           form={form}
           layout="vertical"
           onFinish={handleSubmit}
-          style={{ marginTop: 16 }}
+          style={{ marginTop: token.marginLG }}
+          size="middle"
         >
           <Form.Item
             name="title"
