@@ -174,7 +174,7 @@ export function Deals() {
     <div style={{ padding: '24px', background: '#f0f2f5', minHeight: '100vh' }}>
       <div style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Title level={3} style={{ margin: 0, color: '#1F1F1F' }}>
-          Deals Pipeline
+          Deals
         </Title>
         <div style={{ display: 'flex', gap: 16 }}>
           <Input
