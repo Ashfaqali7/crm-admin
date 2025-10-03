@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Button, Modal, Form, Input, InputNumber, Select, Typography, message, Spin, } from 'antd';
+import { Button, Modal, Form, Input, InputNumber, Select, Typography, Spin, } from 'antd';
 import { PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import {
   DndContext,
@@ -17,6 +17,7 @@ import { leadsService } from '../services/leadsService';
 import { DealCard } from '../components/DealCard';
 import { DealColumn } from '../components/DealColumn';
 import type { Deal, Lead } from '../types';
+import { useTheme } from '../context/ThemeContext';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -32,11 +33,12 @@ export function Deals() {
   const [deals, setDeals] = useState<Deal[]>([]);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
+  const [editDealId, setEditDealId] = useState<string | null>(null);
   const [draggingDeal, setDraggingDeal] = useState<Deal | null>(null);
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-
+  const theme = useTheme();
   const mouseSensor = useSensor(MouseSensor, {
     activationConstraint: { distance: 10 },
   });
@@ -46,10 +48,6 @@ export function Deals() {
   });
 
   const sensors = useSensors(mouseSensor, touchSensor);
-  // Optionally include pointerWithin collision detection for better column drops
-  useEffect(() => {
-    // noop: placeholder in case we want to dynamically change sensors later
-  }, []);
 
   const fetchDeals = async () => {
     setLoading(true);
@@ -57,7 +55,7 @@ export function Deals() {
       const data = await dealsService.getWithDetails();
       setDeals(data);
     } catch (error) {
-      message.error('Failed to fetch deals. Please try again.');
+      theme.showBanner('Failed to fetch deals. Please try again.', 'error');
     } finally {
       setLoading(false);
     }
@@ -68,7 +66,7 @@ export function Deals() {
       const data = await leadsService.getAll();
       setLeads(data);
     } catch (error) {
-      message.error('Failed to fetch leads. Please try again.');
+      theme.showBanner('Failed to fetch leads. Please try again.', 'error');
     }
   };
 
@@ -77,19 +75,23 @@ export function Deals() {
     fetchLeads();
   }, []);
 
-  const handleCreate = async (values: Partial<Deal>) => {
+  const handleSubmit = async (values: Partial<Deal>) => {
     setLoading(true);
     try {
-      await dealsService.create(values);
-      message.success({
-        content: 'Deal created successfully',
-        icon: <span role="img" aria-label="success">🎉</span>,
-      });
+      if (editDealId) {
+        await dealsService.update(editDealId, values);
+        theme.showBanner('Deal updated successfully', 'success');
+      } else {
+        await dealsService.create(values);
+        theme.showBanner('Deal created successfully', 'success');
+      }
+
       setModalVisible(false);
+      setEditDealId(null);
       form.resetFields();
-      fetchDeals();
+      await fetchDeals();
     } catch (error) {
-      message.error('Failed to create deal. Please try again.');
+      theme.showBanner(editDealId ? 'Failed to update deal. Please try again.' : 'Failed to create deal. Please try again.', 'error');
     } finally {
       setLoading(false);
     }
@@ -128,7 +130,7 @@ export function Deals() {
         }
       }
     } catch (error) {
-      message.error('Failed to update deal. Please try again.');
+      theme.showBanner('Failed to update deal. Please try again.', 'error');
     } finally {
       setDraggingDeal(null);
     }
@@ -139,6 +141,24 @@ export function Deals() {
     if (deal) {
       setDraggingDeal(deal);
     }
+  };
+  const openAddDealModal = (dealId?: string) => {
+    if (dealId) {
+      const deal = deals.find(d => d.id === dealId);
+      if (deal) {
+        setEditDealId(dealId);
+        form.setFieldsValue({
+          title: deal.title,
+          lead_id: deal.lead_id,
+          value: deal.value,
+          stage: deal.stage,
+        });
+      }
+    } else {
+      setEditDealId(null);
+      form.resetFields();
+    }
+    setModalVisible(true);
   };
 
   const filteredDeals = deals.filter((deal) =>
@@ -168,7 +188,7 @@ export function Deals() {
           <Button
             type="primary"
             icon={<PlusOutlined />}
-            onClick={() => setModalVisible(true)}
+            onClick={() => openAddDealModal()}
           >
             Add Deal
           </Button>
@@ -200,6 +220,7 @@ export function Deals() {
                 key={stage}
                 title={stage}
                 deals={groupedDeals[stage]}
+                openAddDealModal={openAddDealModal}
               />
             ))}
           </div>
@@ -216,11 +237,13 @@ export function Deals() {
       )}
 
       <Modal
-        title="Add New Deal"
+        title={editDealId ? 'Update Deal' : 'Add New Deal'}
         open={modalVisible}
         onOk={() => form.submit()}
+        okText={editDealId ? 'Update' : 'Add'}
         onCancel={() => {
           setModalVisible(false);
+          setEditDealId(null);
           form.resetFields();
         }}
         width={600}
@@ -230,7 +253,7 @@ export function Deals() {
         <Form
           form={form}
           layout="vertical"
-          onFinish={handleCreate}
+          onFinish={handleSubmit}
           style={{ marginTop: 16 }}
         >
           <Form.Item

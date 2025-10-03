@@ -13,11 +13,11 @@ const { Title } = Typography;
 interface DealColumnProps {
   title: string;
   deals: (Deal & { lead?: { name: string } })[];
-  style?: React.CSSProperties; // Allow custom styles from parent
-  emptyComponent?: React.ReactNode; // Optional custom empty state
+  style?: React.CSSProperties;
+  openAddDealModal?: (dealId?: string) => void;
 }
 
-export function DealColumn({ title, deals = [], style, emptyComponent }: DealColumnProps) {
+export function DealColumn({ title, deals = [], style, openAddDealModal }: DealColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: title,
     data: { stage: title },
@@ -72,9 +72,9 @@ export function DealColumn({ title, deals = [], style, emptyComponent }: DealCol
       >
         <div ref={setNodeRef}>
           {sortedDeals.length > 0 ? (
-            sortedDeals.map((deal) => <DealCard key={deal.id} deal={deal} />)
+            sortedDeals.map((deal) => <DealCard openAddDealModal={openAddDealModal} key={deal.id} deal={deal} />)
           ) : (
-            emptyComponent || (
+            (
               <Empty
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
                 description={`No deals in ${title} stage`}
@@ -83,8 +83,7 @@ export function DealColumn({ title, deals = [], style, emptyComponent }: DealCol
                 <Button
                   type="link"
                   onClick={() => {
-                    // Trigger modal opening in parent component (e.g., Deals)
-                    document.dispatchEvent(new CustomEvent('openAddDealModal', { detail: { stage: title } }));
+                    openAddDealModal?.();
                   }}
                 >
                   Add a Deal

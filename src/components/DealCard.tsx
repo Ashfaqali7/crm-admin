@@ -9,10 +9,11 @@ const { Text, Title } = Typography;
 
 interface DealCardProps {
   deal: Deal & { lead?: { name: string }; assigneeName?: string };
-  style?: React.CSSProperties; // Allow custom styles from parent (e.g., DragOverlay)
+  style?: React.CSSProperties;
+  openAddDealModal?: (dealId?: string) => void;
 }
 
-export function DealCard({ deal, style: parentStyle }: DealCardProps) {
+export function DealCard({ deal, style: parentStyle, openAddDealModal }: DealCardProps) {
   const {
     attributes,
     listeners,
@@ -107,8 +108,7 @@ export function DealCard({ deal, style: parentStyle }: DealCardProps) {
                 type="link"
                 icon={<EditOutlined />}
                 onClick={() => {
-                  // Trigger edit modal (requires implementation in Deals component)
-                  document.dispatchEvent(new CustomEvent('openEditDealModal', { detail: { dealId: memoizedDeal.id } }));
+                  openAddDealModal?.(memoizedDeal.id);
                 }}
                 aria-label={`Edit deal: ${memoizedDeal.title}`}
               />
