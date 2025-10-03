@@ -1,4 +1,4 @@
-import { Layout, Button, Space, Typography, Avatar, Dropdown, theme, type MenuProps } from 'antd';
+import { Layout, Button, Space, Typography, Avatar, Dropdown, type MenuProps } from 'antd';
 import {
   LogoutOutlined,
   MenuFoldOutlined,
@@ -10,6 +10,7 @@ import { useAuth } from '../context/AuthContext';
 import { ThemeToggle } from './ThemeToggle';
 import { useNavigate } from 'react-router-dom';
 import { createStyles } from 'antd-style';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 
 const { Header } = Layout;
 const { Title, Text } = Typography;
@@ -19,12 +20,11 @@ interface NavbarProps {
   toggleCollapsed: () => void;
 }
 
-
-
 export function Navbar({ collapsed, toggleCollapsed }: NavbarProps) {
   const { signOut, profile } = useAuth();
   const navigate = useNavigate();
   const { styles } = useStyles();
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   // User menu items
   const userMenuItems: MenuProps['items'] = [
@@ -68,21 +68,25 @@ export function Navbar({ collapsed, toggleCollapsed }: NavbarProps) {
           onClick={toggleCollapsed}
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         />
-        <Title level={4} className={styles.title}>
-          CRM Admin
-        </Title>
+        {!isMobile && (
+          <Title level={4} className={styles.title}>
+            CRM Admin
+          </Title>
+        )}
       </Space>
 
       {/* Right section */}
       <Space>
         <div className={styles.userInfo}>
           <Avatar size="small" icon={<UserOutlined />} className={styles.avatar} />
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-            <Text strong className={styles.userName}>
-              {profile?.full_name || 'User'}
-            </Text>
-            <Text className={styles.userRole}>{profile?.role || 'Role'}</Text>
-          </div>
+          {!isMobile && (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+              <Text strong className={styles.userName}>
+                {profile?.full_name || 'User'}
+              </Text>
+              <Text className={styles.userRole}>{profile?.role || 'Role'}</Text>
+            </div>
+          )}
         </div>
 
         <ThemeToggle />

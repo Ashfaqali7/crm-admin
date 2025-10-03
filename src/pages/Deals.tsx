@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useRef } from 'react';
+import { useState, useMemo, useCallback, useRef, type SetStateAction } from 'react';
 import { Button, Modal, Form, Input, InputNumber, Select, Typography, Spin, Alert, Tag, Space, Divider, Tooltip, theme } from 'antd';
 import { PlusOutlined, SearchOutlined, ReloadOutlined, FilterOutlined } from '@ant-design/icons';
 import {
@@ -18,6 +18,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useDealsData } from '../hooks/useDealsData';
 import { useDebounce } from '../hooks/useDebounce';
 import { DEAL_STAGES } from '../constants/deals';
+import { StatusTag } from '../components/StatusTag';
 import type { Deal, Lead } from '../types';
 
 const { Title, Text } = Typography;
@@ -259,7 +260,7 @@ export function Deals() {
               placeholder="Search deals, leads, or values..."
               prefix={<SearchOutlined />}
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e: { target: { value: SetStateAction<string>; }; }) => setSearchQuery(e.target.value)}
               style={{ width: 280 }}
               allowClear
               size="middle"
@@ -476,7 +477,7 @@ export function Deals() {
             <Select>
               {DEAL_STAGES.map((stage) => (
                 <Option key={stage} value={stage}>
-                  {stage}
+                  <StatusTag status={stage} />
                 </Option>
               ))}
             </Select>

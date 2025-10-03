@@ -1,7 +1,6 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, type SetStateAction } from 'react';
 import {
   List,
-  Card,
   Checkbox,
   Button,
   Modal,
@@ -27,13 +26,14 @@ import {
   EditOutlined,
   DeleteOutlined,
   CalendarOutlined,
-  CheckCircleOutlined,
   DownOutlined,
+  CheckCircleOutlined,
 } from '@ant-design/icons';
 import { tasksService } from '../services/tasksService';
 import { leadsService } from '../services/leadsService';
 import type { Task, Lead } from '../types';
 import dayjs from 'dayjs';
+import { StatusTag } from '../components/StatusTag';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -140,39 +140,6 @@ export function Tasks() {
     }
   };
 
-  const renderStatusTag = (status: string) => {
-    const statusConfig = {
-      'Done': {
-        color: 'success' as const,
-        text: 'Done'
-      },
-      'In Progress': {
-        color: 'warning' as const,
-        text: 'In Progress'
-      },
-      'Pending': {
-        color: 'processing' as const,
-        text: 'Pending'
-      }
-    };
-
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.Pending;
-
-    return (
-      <Tag
-        color={config.color}
-        icon={<CheckCircleOutlined />}
-        style={{
-          borderRadius: token.borderRadius,
-          fontSize: token.fontSizeSM,
-          padding: `${token.paddingXXS}px ${token.paddingXS}px`,
-          fontWeight: token.fontWeightStrong
-        }}
-      >
-        {config.text}
-      </Tag>
-    );
-  };
 
   const renderDueDate = (due_date: string) => {
     const date = dayjs(due_date);
@@ -264,7 +231,7 @@ export function Tasks() {
               placeholder="Search tasks..."
               prefix={<SearchOutlined />}
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e: { target: { value: SetStateAction<string>; }; }) => setSearchQuery(e.target.value)}
               style={{ width: 200 }}
               allowClear
             />
@@ -324,8 +291,8 @@ export function Tasks() {
                   transition: `background-color ${token.motionDurationMid}`,
                   backgroundColor: task.status === 'Done' ? token.colorFillAlter : token.colorBgContainer,
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = token.colorFillSecondary)}
-                onMouseLeave={(e) =>
+                onMouseEnter={(e: { currentTarget: { style: { backgroundColor: string; }; }; }) => (e.currentTarget.style.backgroundColor = token.colorFillSecondary)}
+                onMouseLeave={(e: { currentTarget: { style: { backgroundColor: string; }; }; }) =>
                   (e.currentTarget.style.backgroundColor = task.status === 'Done' ? token.colorFillAlter : token.colorBgContainer)
                 }
                 actions={[
@@ -379,7 +346,7 @@ export function Tasks() {
                         {task.title}
                       </Title>
                     </div>
-                    {renderStatusTag(task.status)}
+                    <StatusTag status={task.status} />
                   </Space>
                   {task.description && (
                     <Text

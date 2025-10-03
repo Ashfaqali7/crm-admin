@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Card, Row, Col, Statistic, Table, Typography, theme } from 'antd';
-import { Column, Pie, Line } from '@ant-design/charts';
+import { Card, Row, Col, Statistic, Table, Typography, theme, Progress, Tabs } from 'antd';
+import { Column, Pie, Line, Bar, DualAxes, Area } from '@ant-design/charts';
 import { leadsService } from '../services/leadsService';
 import { dealsService } from '../services/dealsService';
 import { tasksService } from '../services/tasksService';
 import type { Lead, Deal, Task } from '../types';
 
 const { Title, Text } = Typography;
+const { TabPane } = Tabs;
 
 function formatMonthLabel(dateStr: string) {
   const d = new Date(dateStr);
@@ -136,6 +137,35 @@ export function Dashboard() {
     return months.map(key => ({ month: key, count: map.get(key) || 0 }));
   }, [tasks]);
 
+  // Performance metrics
+  const performanceMetrics = useMemo(() => {
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now);
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const recentDeals = deals.filter(d => {
+      if (!d.created_at) return false;
+      const dealDate = new Date(d.created_at);
+      return dealDate >= thirtyDaysAgo;
+    });
+
+    const recentLeads = leads.filter(l => {
+      if (!l.created_at) return false;
+      const leadDate = new Date(l.created_at);
+      return leadDate >= thirtyDaysAgo;
+    });
+
+    const wonRecentDeals = recentDeals.filter(d => d.stage === 'Won').length;
+    const conversion = recentDeals.length ? Math.round((wonRecentDeals / recentDeals.length) * 100) : 0;
+
+    return {
+      leads: recentLeads.length,
+      deals: recentDeals.length,
+      wonDeals: wonRecentDeals,
+      conversionRate: conversion
+    };
+  }, [deals, leads]);
+
   // Chart configs for tasks
   const topClientsConfig = {
     data: tasksByLead.map(t => ({ lead: t.leadName, value: t.count })),
@@ -215,6 +245,39 @@ export function Dashboard() {
     height: 300,
     point: { size: 4, shape: 'diamond' },
     area: { style: { fill: 'l(270) 0:#ffffff 1:#d6e4ff' } },
+  };
+
+  // New advanced charts
+  const dualAxesConfig = {
+    data: [monthlyRevenue.map(m => ({ month: formatMonthLabel(m.month), revenue: m.revenue })),
+    tasksOverTime.map(t => ({ month: formatMonthLabel(t.month), tasks: t.count }))],
+    xField: 'month',
+    yField: ['revenue', 'tasks'],
+    height: 300,
+    geometryOptions: [
+      {
+        geometry: 'line',
+        smooth: true,
+        color: '#1C6EA4',
+      },
+      {
+        geometry: 'line',
+        smooth: true,
+        color: '#FF6B35',
+      },
+    ],
+  };
+
+  const areaConfig = {
+    data: monthlyRevenue.map(m => ({ month: formatMonthLabel(m.month), revenue: m.revenue })),
+    xField: 'month',
+    yField: 'revenue',
+    height: 300,
+    areaStyle: () => {
+      return {
+        fill: 'l(270) 0:#ffffff 1:#1C6EA4',
+      };
+    },
   };
 
   return (
@@ -424,161 +487,268 @@ export function Dashboard() {
         </Col>
       </Row>
 
+      {/* Performance Metrics */}
+      <Row gutter={[token.marginLG, token.marginLG]} style={{ marginTop: token.marginLG }}>
+        <Col xs={24} sm={12} lg={6}>
+          <Card
+            title={
+              <Text style={{
+                fontSize: token.fontSizeLG,
+                fontWeight: token.fontWeightStrong,
+                color: token.colorText,
+              }}>
+                Recent Leads (30 days)
+              </Text>
+            }
+            style={{
+              borderRadius: token.borderRadiusLG,
+              boxShadow: token.boxShadow,
+            }}
+            styles={{
+              body: {
+                padding: token.paddingLG,
+                textAlign: 'center'
+              }
+            }}
+          >
+            <div style={{ fontSize: 32, fontWeight: 'bold', color: token.colorPrimary }}>
+              {performanceMetrics.leads}
+            </div>
+            <Text type="secondary">New leads in the last 30 days</Text>
+          </Card>
+        </Col>
+
+        <Col xs={24} sm={12} lg={6}>
+          <Card
+            title={
+              <Text style={{
+                fontSize: token.fontSizeLG,
+                fontWeight: token.fontWeightStrong,
+                color: token.colorText,
+              }}>
+                Recent Deals (30 days)
+              </Text>
+            }
+            style={{
+              borderRadius: token.borderRadiusLG,
+              boxShadow: token.boxShadow,
+            }}
+            styles={{
+              body: {
+                padding: token.paddingLG,
+                textAlign: 'center'
+              }
+            }}
+          >
+            <div style={{ fontSize: 32, fontWeight: 'bold', color: token.colorSuccess }}>
+              {performanceMetrics.deals}
+            </div>
+            <Text type="secondary">New deals in the last 30 days</Text>
+          </Card>
+        </Col>
+
+        <Col xs={24} sm={12} lg={6}>
+          <Card
+            title={
+              <Text style={{
+                fontSize: token.fontSizeLG,
+                fontWeight: token.fontWeightStrong,
+                color: token.colorText,
+              }}>
+                Won Deals (30 days)
+              </Text>
+            }
+            style={{
+              borderRadius: token.borderRadiusLG,
+              boxShadow: token.boxShadow,
+            }}
+            styles={{
+              body: {
+                padding: token.paddingLG,
+                textAlign: 'center'
+              }
+            }}
+          >
+            <div style={{ fontSize: 32, fontWeight: 'bold', color: token.colorWarning }}>
+              {performanceMetrics.wonDeals}
+            </div>
+            <Text type="secondary">Deals won in the last 30 days</Text>
+          </Card>
+        </Col>
+      </Row>
+
       {/* Charts Section */}
-      <Row gutter={[token.marginLG, token.marginLG]} style={{ marginTop: token.marginLG }}>
-        <Col xs={24} lg={12} xl={10}>
-          <Card
-            title={
-              <Text style={{
-                fontSize: token.fontSizeLG,
-                fontWeight: token.fontWeightStrong,
-                color: token.colorText,
-              }}>
-                Deals by Stage (Total Value)
-              </Text>
-            }
-            style={{
-              borderRadius: token.borderRadiusLG,
-              boxShadow: token.boxShadow,
-            }}
-            styles={{
-              body: {
-                padding: token.paddingLG,
-              }
-            }}
-          >
-            <Column {...columnConfig} />
-          </Card>
-        </Col>
+      <Tabs
+        defaultActiveKey="1"
+        size="large"
+        style={{ marginTop: token.marginLG }}
+        items={[
+          {
+            key: '1',
+            label: 'Deals Analytics',
+            children: (
+              <Row gutter={[token.marginLG, token.marginLG]}>
+                <Col xs={24} lg={12} xl={10}>
+                  <Card
+                    title={
+                      <Text style={{
+                        fontSize: token.fontSizeLG,
+                        fontWeight: token.fontWeightStrong,
+                        color: token.colorText,
+                      }}>
+                        Deals by Stage (Total Value)
+                      </Text>
+                    }
+                    style={{
+                      borderRadius: token.borderRadiusLG,
+                      boxShadow: token.boxShadow,
+                    }}
+                    styles={{
+                      body: {
+                        padding: token.paddingLG,
+                      }
+                    }}
+                  >
+                    <Column {...columnConfig} />
+                  </Card>
+                </Col>
 
-        <Col xs={24} lg={12} xl={7}>
-          <Card
-            title={
-              <Text style={{
-                fontSize: token.fontSizeLG,
-                fontWeight: token.fontWeightStrong,
-                color: token.colorText,
-              }}>
-                Leads by Status
-              </Text>
-            }
-            style={{
-              borderRadius: token.borderRadiusLG,
-              boxShadow: token.boxShadow,
-            }}
-            styles={{
-              body: {
-                padding: token.paddingLG,
-              }
-            }}
-          >
-            <Pie {...pieConfig} />
-          </Card>
-        </Col>
+                <Col xs={24} lg={12} xl={7}>
+                  <Card
+                    title={
+                      <Text style={{
+                        fontSize: token.fontSizeLG,
+                        fontWeight: token.fontWeightStrong,
+                        color: token.colorText,
+                      }}>
+                        Leads by Status
+                      </Text>
+                    }
+                    style={{
+                      borderRadius: token.borderRadiusLG,
+                      boxShadow: token.boxShadow,
+                    }}
+                    styles={{
+                      body: {
+                        padding: token.paddingLG,
+                      }
+                    }}
+                  >
+                    <Pie {...pieConfig} />
+                  </Card>
+                </Col>
 
-        <Col xs={24} xl={7}>
-          <Card
-            title={
-              <Text style={{
-                fontSize: token.fontSizeLG,
-                fontWeight: token.fontWeightStrong,
-                color: token.colorText,
-              }}>
-                Monthly Revenue
-              </Text>
-            }
-            style={{
-              borderRadius: token.borderRadiusLG,
-              boxShadow: token.boxShadow,
-            }}
-            styles={{
-              body: {
-                padding: token.paddingLG,
-              }
-            }}
-          >
-            <Line {...lineConfig} />
-          </Card>
-        </Col>
-      </Row>
+                <Col xs={24} xl={7}>
+                  <Card
+                    title={
+                      <Text style={{
+                        fontSize: token.fontSizeLG,
+                        fontWeight: token.fontWeightStrong,
+                        color: token.colorText,
+                      }}>
+                        Monthly Revenue
+                      </Text>
+                    }
+                    style={{
+                      borderRadius: token.borderRadiusLG,
+                      boxShadow: token.boxShadow,
+                    }}
+                    styles={{
+                      body: {
+                        padding: token.paddingLG,
+                      }
+                    }}
+                  >
+                    <Line {...lineConfig} />
+                  </Card>
+                </Col>
+              </Row>
+            )
+          },
+          {
+            key: '2',
+            label: 'Tasks Analytics',
+            children: (
+              <Row gutter={[token.marginLG, token.marginLG]}>
+                <Col xs={24} lg={12} xl={8}>
+                  <Card
+                    title={
+                      <Text style={{
+                        fontSize: token.fontSizeLG,
+                        fontWeight: token.fontWeightStrong,
+                        color: token.colorText,
+                      }}>
+                        Top Clients by Task Count
+                      </Text>
+                    }
+                    style={{
+                      borderRadius: token.borderRadiusLG,
+                      boxShadow: token.boxShadow,
+                    }}
+                    styles={{
+                      body: {
+                        padding: token.paddingLG,
+                      }
+                    }}
+                  >
+                    <Column {...topClientsConfig} />
+                  </Card>
+                </Col>
 
-      {/* Tasks Analytics Section */}
-      <Row gutter={[token.marginLG, token.marginLG]} style={{ marginTop: token.marginLG }}>
-        <Col xs={24} lg={12} xl={8}>
-          <Card
-            title={
-              <Text style={{
-                fontSize: token.fontSizeLG,
-                fontWeight: token.fontWeightStrong,
-                color: token.colorText,
-              }}>
-                Top Clients by Task Count
-              </Text>
-            }
-            style={{
-              borderRadius: token.borderRadiusLG,
-              boxShadow: token.boxShadow,
-            }}
-            styles={{
-              body: {
-                padding: token.paddingLG,
-              }
-            }}
-          >
-            <Column {...topClientsConfig} />
-          </Card>
-        </Col>
+                <Col xs={24} lg={12} xl={8}>
+                  <Card
+                    title={
+                      <Text style={{
+                        fontSize: token.fontSizeLG,
+                        fontWeight: token.fontWeightStrong,
+                        color: token.colorText,
+                      }}>
+                        Tasks by Status
+                      </Text>
+                    }
+                    style={{
+                      borderRadius: token.borderRadiusLG,
+                      boxShadow: token.boxShadow,
+                    }}
+                    styles={{
+                      body: {
+                        padding: token.paddingLG,
+                      }
+                    }}
+                  >
+                    <Pie {...tasksStatusPieConfig} />
+                  </Card>
+                </Col>
 
-        <Col xs={24} lg={12} xl={8}>
-          <Card
-            title={
-              <Text style={{
-                fontSize: token.fontSizeLG,
-                fontWeight: token.fontWeightStrong,
-                color: token.colorText,
-              }}>
-                Tasks by Status
-              </Text>
-            }
-            style={{
-              borderRadius: token.borderRadiusLG,
-              boxShadow: token.boxShadow,
-            }}
-            styles={{
-              body: {
-                padding: token.paddingLG,
-              }
-            }}
-          >
-            <Pie {...tasksStatusPieConfig} />
-          </Card>
-        </Col>
-
-        <Col xs={24} xl={8}>
-          <Card
-            title={
-              <Text style={{
-                fontSize: token.fontSizeLG,
-                fontWeight: token.fontWeightStrong,
-                color: token.colorText,
-              }}>
-                Tasks Over Time
-              </Text>
-            }
-            style={{
-              borderRadius: token.borderRadiusLG,
-              boxShadow: token.boxShadow,
-            }}
-            styles={{
-              body: {
-                padding: token.paddingLG,
-              }
-            }}
-          >
-            <Line {...tasksLineConfig} />
-          </Card>
-        </Col>
-      </Row>
+                <Col xs={24} xl={8}>
+                  <Card
+                    title={
+                      <Text style={{
+                        fontSize: token.fontSizeLG,
+                        fontWeight: token.fontWeightStrong,
+                        color: token.colorText,
+                      }}>
+                        Tasks Over Time
+                      </Text>
+                    }
+                    style={{
+                      borderRadius: token.borderRadiusLG,
+                      boxShadow: token.boxShadow,
+                    }}
+                    styles={{
+                      body: {
+                        padding: token.paddingLG,
+                      }
+                    }}
+                  >
+                    <Line {...tasksLineConfig} />
+                  </Card>
+                </Col>
+              </Row>
+            )
+          },
+        ]}
+      />
 
       {/* Recent Data Tables */}
       <Row gutter={[token.marginLG, token.marginLG]} style={{ marginTop: token.marginLG }}>

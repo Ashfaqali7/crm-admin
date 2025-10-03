@@ -1,4 +1,4 @@
-import { Menu, theme, Typography } from 'antd';
+import { Menu, theme } from 'antd';
 import {
   DashboardOutlined,
   FundOutlined,
@@ -8,8 +8,8 @@ import {
 } from '@ant-design/icons';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 
-const { Text } = Typography;
 
 interface MenuItem {
   key: string;
@@ -22,7 +22,8 @@ export function Sidebar() {
   const { profile } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const { token } = theme.useToken();
+  theme.useToken();
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   // Define menu items with better structure
   const baseMenuItems: MenuItem[] = [
@@ -69,11 +70,18 @@ export function Sidebar() {
     key: item.key,
     icon: item.icon,
     label: item.label,
-    onClick: () => navigate(item.path),
+    active: item.path === location.pathname,
+    onClick: () => {
+      navigate(item.path);
+      // Close sidebar on mobile after navigation
+      if (isMobile) {
+        // This would need to be handled by the parent component
+      }
+    },
   }));
 
   return (
-    <div style={{ height: '100%' }}>
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <Menu
         mode="inline"
         selectedKeys={[location.pathname]}
@@ -82,29 +90,9 @@ export function Sidebar() {
           background: 'transparent',
           border: 'none',
           height: '100%',
-          padding: `${token.paddingXS}px 0`,
         }}
       />
 
-      {/* Optional footer section for additional info */}
-      <div style={{
-        position: 'absolute',
-        bottom: token.paddingLG,
-        left: token.paddingSM,
-        right: token.paddingSM,
-        opacity: 0.7,
-      }}>
-        <Text
-          style={{
-            fontSize: 10,
-            color: token.colorTextSecondary,
-            display: 'block',
-            textAlign: 'center',
-          }}
-        >
-          CRM v1.0
-        </Text>
-      </div>
     </div>
   );
 }

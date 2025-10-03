@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, type SetStateAction } from 'react';
 import {
   Table,
   Card,
@@ -28,6 +28,7 @@ import {
 } from '@ant-design/icons';
 import { leadsService } from '../services/leadsService';
 import { usersService } from '../services/usersService';
+import { StatusTag } from '../components/StatusTag';
 import type { Lead, Profile, Status } from '../types';
 
 const { Title, Text } = Typography;
@@ -177,11 +178,18 @@ export function Leads() {
           size="small"
           style={{ width: 140 }}
         >
-          {Object.entries(statusOptions).map(([value, { color, label }]) => (
-            <Option key={value} value={value}>
-              <Tag color={color}>{label}</Tag>
-            </Option>
-          ))}
+          <Option value="New">
+            <StatusTag status="New" />
+          </Option>
+          <Option value="Contacted">
+            <StatusTag status="Contacted" />
+          </Option>
+          <Option value="Qualified">
+            <StatusTag status="Qualified" />
+          </Option>
+          <Option value="Lost">
+            <StatusTag status="Lost" />
+          </Option>
         </Select>
       ),
       width: 100,
@@ -256,7 +264,7 @@ export function Leads() {
               placeholder="Search leads..."
               prefix={<SearchOutlined />}
               value={searchText}
-              onChange={e => setSearchText(e.target.value)}
+              onChange={(e: { target: { value: SetStateAction<string>; }; }) => setSearchText(e.target.value)}
               allowClear
             />
           </Col>
@@ -347,11 +355,18 @@ export function Leads() {
 
           <Form.Item name="status" label="Initial Status" initialValue="New">
             <Select>
-              {Object.entries(statusOptions).map(([value, { color, label }]) => (
-                <Option key={value} value={value}>
-                  <Tag color={color}>{label}</Tag>
-                </Option>
-              ))}
+              <Option value="New">
+                <StatusTag status="New" />
+              </Option>
+              <Option value="Contacted">
+                <StatusTag status="Contacted" />
+              </Option>
+              <Option value="Qualified">
+                <StatusTag status="Qualified" />
+              </Option>
+              <Option value="Lost">
+                <StatusTag status="Lost" />
+              </Option>
             </Select>
           </Form.Item>
 
