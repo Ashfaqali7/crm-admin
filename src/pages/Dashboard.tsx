@@ -151,7 +151,10 @@ export function Dashboard() {
     angleField: 'value',
     colorField: 'type',
     radius: 0.8,
-    label: { type: 'spider', labelHeight: 28, formatter: (d: any) => `${d.type}: ${d.value}` },
+    label: {
+      type: 'spider', labelHeight: 28,
+      formatter: (d: any) => `${d?.type ?? 'Unknown'}: ${d?.value ?? 0}`
+    },
     interactions: [{ type: 'element-active' }],
     height: 300,
   };

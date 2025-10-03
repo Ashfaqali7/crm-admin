@@ -27,102 +27,114 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user]);
 
   useEffect(() => {
+    let isMounted = true;
+
     // Initial session check
     async function initializeAuth() {
       console.log("Starting auth initialization...");
+      if (!isMounted) return;
+
       setLoading(true);
-      // Race getSession against a timeout to avoid indefinite hangs
-      const sessionPromise = supabase.auth.getSession();
-      const timeout = new Promise<{ data: { session: null } }>((_, reject) =>
-        setTimeout(() => reject(new Error('getSession timed out')), 8000)
-      );
 
       try {
-        console.log("Fetching session (with timeout)...");
-        const { data: { session } } = await Promise.race([sessionPromise, timeout]) as any;
-        console.log("Initial session check:", session ? "Session found" : "No session");
+        console.log("Fetching session...");
+
+        // Add timeout to getSession to prevent hanging
+        const getSessionPromise = supabase.auth.getSession();
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('getSession timeout')), 10000)
+        );
+
+        const { data: { session }, error } = await Promise.race([
+          getSessionPromise,
+          timeoutPromise
+        ]) as any;
+
+        if (!isMounted) return;
+
+        console.log("Initial session check:", session ? "Session found" : "No session", error);
+
+        if (error) {
+          console.error("Session error:", error);
+          if (isMounted) {
+            setUser(null);
+            setProfile(null);
+          }
+          return;
+        }
 
         if (session?.user) {
           console.log("Setting user state...");
-          setUser(session.user);
+          if (isMounted) {
+            setUser(session.user);
+          }
           console.log("Fetching user profile...");
           await getProfile(session.user.id);
+          if (!isMounted) return;
           console.log("Profile fetched successfully");
         } else {
           console.log("No session found, clearing user and profile");
+          if (isMounted) {
+            setUser(null);
+            setProfile(null);
+          }
+        }
+      } catch (error) {
+        console.error("Error during auth initialization:", error);
+        if (isMounted) {
           setUser(null);
           setProfile(null);
         }
-      } catch (error) {
-        console.error("Error during auth initialization (or timeout):", error);
-        // Reset states on error
-        setUser(null);
-        setProfile(null);
       } finally {
-        console.log("Finishing auth initialization, setting loading to false");
-        setLoading(false);
+        if (isMounted) {
+          console.log("Finishing auth initialization, setting loading to false");
+          setLoading(false);
+        }
       }
     }
 
     initializeAuth();
 
-    // Debug: list Supabase-related localStorage keys to help diagnose persistence
-    try {
-      const keys = Object.keys(localStorage).filter(k => k.startsWith('sb-') || k.includes('supabase'));
-      console.log('Supabase-related localStorage keys on init:', keys);
-      keys.forEach(k => console.log(k, localStorage.getItem(k)));
-    } catch (err) {
-      console.warn('Could not read localStorage during auth init:', err);
-    }
-
-    // Clear Supabase-related localStorage keys on tab/window close so the app
-    // always requires a fresh login when reopened.
-    const handleBeforeUnload = () => {
-      try {
-        const keys = Object.keys(localStorage).filter(k => k.startsWith('sb-') || k.includes('supabase'));
-        keys.forEach(k => localStorage.removeItem(k));
-        console.log('Cleared Supabase-related localStorage keys on beforeunload:', keys);
-      } catch (err) {
-        console.warn('Error clearing localStorage on beforeunload:', err);
-      }
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (!isMounted) return;
+
       console.log("Auth state changed:", _event, session ? "Session exists" : "No session");
       try {
-        // If there's a session with a user, only re-fetch profile and show
-        // the loading UI when the user changed (e.g. new login). This avoids
-        // showing a full-screen loader during transient events like token
-        // refresh or tab visibility changes when the same user is active.
         if (session?.user) {
           const sameUser = userRef.current && userRef.current.id === session.user.id;
           if (!sameUser) {
-            setLoading(true);
-            setUser(session.user);
+            console.log("New user session detected, updating state...");
+            if (isMounted) {
+              setUser(session.user);
+            }
             await getProfile(session.user.id);
           } else {
-            // same user; ensure state is in sync but avoid toggling loading
-            setUser(session.user);
+            // same user; ensure state is in sync
+            if (isMounted) {
+              setUser(session.user);
+            }
           }
         } else {
-          // Signed out
-          setUser(null);
-          setProfile(null);
+          // Signed out or session expired
+          console.log("No session or signed out");
+          if (isMounted) {
+            setUser(null);
+            setProfile(null);
+          }
         }
       } catch (err) {
         console.error('Error handling auth state change:', err);
-      } finally {
-        // Ensure loading is cleared after handling auth state change
-        setLoading(false);
+        if (isMounted) {
+          setUser(null);
+          setProfile(null);
+        }
       }
     });
 
     return () => {
+      isMounted = false;
       subscription.unsubscribe();
-      window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, []);
 
@@ -141,21 +153,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function getProfile(userId: string) {
     console.log('Starting profile fetch for user:', userId);
     try {
-      const { data, error } = await supabase
+      // Add timeout to profile fetch to prevent hanging
+      const profilePromise = supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
 
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Profile fetch timeout')), 8000)
+      );
+
+      const { data, error } = await Promise.race([
+        profilePromise,
+        timeoutPromise
+      ]) as any;
+
       if (error) {
         console.error('Error fetching profile:', error);
-        // Don't fail silently, but set profile to null on error
+        // Set profile to null on error but don't throw
         setProfile(null);
         return;
       }
 
-      console.log('Profile data received:', data ? 'success' : 'no data');
-      setProfile(data);
+      if (data) {
+        console.log('Profile data received:', data.full_name || 'success');
+        setProfile(data);
+      } else {
+        console.log('No profile data found');
+        setProfile(null);
+      }
     } catch (error) {
       console.error('Unexpected error in getProfile:', error);
       setProfile(null);
@@ -172,30 +199,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error("Supabase client not properly initialized");
       }
 
-      // Get current session
-      const { data: { session: currentSession } } = await supabase.auth.getSession();
-      console.log("Current session state:", currentSession ? "Active" : "No active session");
-
       console.log("Attempting signIn with email:", email);
 
-      const signInPromise = supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      // Add timeout to detect if the request is stuck
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Sign in request timed out')), 10000);
-      });
-
-      const { data, error } = await Promise.race([
-        signInPromise,
-        timeoutPromise,
-      ]) as { data: any; error: any };
-
-      console.log("Raw Supabase response received");
-      console.log("Response data:", JSON.stringify(data, null, 2));
+      console.log("SignIn response received");
       console.log("Response error:", error);
+      console.log("Response data exists:", !!data);
 
       if (error) {
         console.error("Auth error details:", error);
@@ -204,7 +217,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (!data?.user) {
         console.error("No user data in response");
-        throw new Error("No user data returned");
+        throw new Error("Invalid email or password");
       }
 
       console.log("Setting user state...");
@@ -219,7 +232,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { user: data.user, session: data.session };
     } catch (err) {
       console.error("SignIn process failed with error:", err);
-      console.error("Error stack:", (err as Error).stack);
       throw err;
     } finally {
       // Always clear loading so UI doesn't remain stuck

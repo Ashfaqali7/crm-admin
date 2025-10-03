@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Card, Form, Input, Button, Typography, message, theme } from 'antd';
+import { Card, Form, Input, Button, Typography, message, theme, Spin, Alert } from 'antd';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { MailOutlined, LockOutlined } from '@ant-design/icons';
+import { MailOutlined, LockOutlined, UserOutlined } from '@ant-design/icons';
 
 const { Title, Text } = Typography;
 
@@ -21,11 +21,13 @@ export function Login() {
       const { user } = await signIn(values.email, values.password);
 
       if (user) {
+        message.success("Login successful!");
         navigate(from, { replace: true });
       } else {
         message.error("Invalid credentials.");
       }
     } catch (error: any) {
+      console.error("Login error:", error);
       message.error(error.message || "Failed to sign in.");
     } finally {
       setLoading(false);

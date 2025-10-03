@@ -1,13 +1,15 @@
 import { useState } from 'react';
-import { Card, Form, Input, Button, Typography, message } from 'antd';
+import { Card, Form, Input, Button, Typography, message, theme, Spin, Alert } from 'antd';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../services/supabaseClient';
+import { UserOutlined, MailOutlined, PhoneOutlined, LockOutlined } from '@ant-design/icons';
 
 const { Title, Text } = Typography;
 
 export function Signup() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const { token } = theme.useToken();
 
   const onFinish = async (values: {
     email: string;
@@ -17,7 +19,7 @@ export function Signup() {
   }) => {
     try {
       setLoading(true);
-      
+
       // Sign up the user
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email: values.email,
@@ -49,25 +51,26 @@ export function Signup() {
   };
 
   return (
-    <div style={{ 
-      minHeight: '100vh', 
-      display: 'flex', 
-      justifyContent: 'center', 
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      justifyContent: 'center',
       alignItems: 'center',
-      background: 'linear-gradient(135deg, #1890ff 0%, #001529 100%)',
+      background: `linear-gradient(135deg, ${token.colorPrimary} 0%, ${token.colorBgContainer} 100%)`,
       padding: '20px'
     }}>
-      <Card 
-        style={{ 
-          width: '100%', 
+      <Card
+        style={{
+          width: '100%',
           maxWidth: 480,
-          boxShadow: '0 8px 16px rgba(0,0,0,0.1)',
-          borderRadius: '8px'
+          borderRadius: 12,
+          boxShadow: '0 12px 24px rgba(0,0,0,0.15)',
+          backdropFilter: 'blur(6px)'
         }}
       >
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <Title level={2} style={{ margin: 0, color: '#1890ff' }}>CRM Admin</Title>
-          <Title level={3}>Create Account</Title>
+          <Title level={2} style={{ margin: 0, color: token.colorPrimary }}>CRM Admin</Title>
+          <Text type="secondary">Create your account</Text>
         </div>
 
         <Form
@@ -81,7 +84,7 @@ export function Signup() {
             label="Full Name"
             rules={[{ required: true, message: 'Please input your full name!' }]}
           >
-            <Input placeholder="John Doe" />
+            <Input prefix={<UserOutlined />} placeholder="John Doe" />
           </Form.Item>
 
           <Form.Item
@@ -92,7 +95,7 @@ export function Signup() {
               { type: 'email', message: 'Please enter a valid email!' }
             ]}
           >
-            <Input placeholder="john@example.com" />
+            <Input prefix={<MailOutlined />} placeholder="john@example.com" />
           </Form.Item>
 
           <Form.Item
@@ -100,7 +103,7 @@ export function Signup() {
             label="Phone"
             rules={[{ required: true, message: 'Please input your phone number!' }]}
           >
-            <Input placeholder="+1 234 567 8900" />
+            <Input prefix={<PhoneOutlined />} placeholder="+1 234 567 8900" />
           </Form.Item>
 
           <Form.Item
@@ -111,7 +114,7 @@ export function Signup() {
               { min: 6, message: 'Password must be at least 6 characters!' }
             ]}
           >
-            <Input.Password />
+            <Input.Password prefix={<LockOutlined />} placeholder="Enter your password" />
           </Form.Item>
 
           <Form.Item
@@ -130,7 +133,7 @@ export function Signup() {
               }),
             ]}
           >
-            <Input.Password />
+            <Input.Password prefix={<LockOutlined />} placeholder="Confirm your password" />
           </Form.Item>
 
           <Form.Item>
