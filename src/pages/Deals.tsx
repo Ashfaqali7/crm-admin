@@ -174,7 +174,7 @@ export function Deals() {
   }, [groupedDeals]);
 
   return (
-    <div style={{ padding: '24px', background: '#f8f9fa', minHeight: '100vh' }}>
+    <div style={{ minHeight: '100vh' }}>
       {/* Error Alert */}
       {error && (
         <Alert
@@ -205,7 +205,7 @@ export function Deals() {
           gap: 16
         }}>
           <div>
-            <Title level={3} style={{ margin: 0, color: '#1F1F1F', fontWeight: 600 }}>
+            <Title level={3} style={{ margin: 0, textAlign: "start", fontWeight: 600 }}>
               Deals Pipeline
             </Title>
             <div style={{ marginTop: 8 }}>
