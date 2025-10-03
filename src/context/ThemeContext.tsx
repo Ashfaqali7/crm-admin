@@ -18,7 +18,14 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const themeConfig = {
     algorithm: isDarkMode ? theme.darkAlgorithm : theme.defaultAlgorithm,
     token: {
-      colorPrimary: '#1890ff',
+      colorPrimary: '#1C6EA4', // main brand blue
+      colorLink: '#33A1E0', // links / hover
+      colorSuccess: '#154D71', // success / accents
+      colorWarning: '#FFF9AF', // warnings / highlights
+      colorError: '#E03131',
+      colorTextBase: isDarkMode ? '#FFFFFF' : '#000000', colorBgBase: isDarkMode ? '#000000' : '#FFFFFF',
+      colorBorder: '#154D71',
+      colorBorderSecondary: '#33A1E0',
     },
   };
 

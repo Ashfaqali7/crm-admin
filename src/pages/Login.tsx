@@ -40,7 +40,6 @@ export function Login() {
         justifyContent: 'center',
         alignItems: 'center',
         background: `linear-gradient(135deg, ${token.colorPrimary} 0%, ${token.colorBgContainer} 100%)`,
-        padding: '20px'
       }}
     >
       <Card
