@@ -1,6 +1,7 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useState, useEffect, type ReactNode } from 'react';
+import { type ReactNode } from 'react';
+import { useState, useEffect } from 'react';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -10,42 +11,69 @@ interface ProtectedRouteProps {
 export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
   const { user, profile, loading } = useAuth();
   const location = useLocation();
+  const [showTimeout, setShowTimeout] = useState(false);
 
   console.log('ProtectedRoute state:', { loading, hasUser: !!user, hasProfile: !!profile });
 
-  const [showTimeout, setShowTimeout] = useState(false);
   useEffect(() => {
-    // Only start the timeout when we're loading and there's no user yet.
-    if (!loading || user) {
+    if (!loading) {
       setShowTimeout(false);
       return;
     }
 
+    // Set a timeout to show fallback options if loading takes too long
     const timer = setTimeout(() => {
-      if (loading && !user) {
-        console.log('Loading timeout reached (no user)');
-        setShowTimeout(true);
-      }
-    }, 5000); 
+      setShowTimeout(true);
+    }, 8000);
 
     return () => clearTimeout(timer);
-  }, [loading, user]);
+  }, [loading]);
 
-  if (loading && !user) {
+  // Show loading spinner while auth is initializing
+  if (loading) {
     return (
-      <div style={{ 
-        display: 'flex', 
+      <div style={{
+        display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '100vh' 
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh'
       }}>
         <div>Loading...</div>
         {showTimeout && (
-          <div style={{ marginTop: '1rem', color: 'red' }}>
-            <div>Loading is taking longer than expected.</div>
-            <button onClick={() => localStorage.clear()}>
-              Clear Session
+          <div style={{ marginTop: '1rem', textAlign: 'center' }}>
+            <div style={{ color: 'orange', marginBottom: '1rem' }}>
+              Taking longer than expected to load...
+            </div>
+            <button
+              onClick={() => window.location.reload()}
+              style={{
+                padding: '8px 16px',
+                marginRight: '8px',
+                backgroundColor: '#1890ff',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer'
+              }}
+            >
+              Retry
+            </button>
+            <button
+              onClick={() => {
+                localStorage.clear();
+                window.location.href = '/login';
+              }}
+              style={{
+                padding: '8px 16px',
+                backgroundColor: '#ff4d4f',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer'
+              }}
+            >
+              Clear & Restart
             </button>
           </div>
         )}
@@ -53,11 +81,13 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
     );
   }
 
+  // If no user after loading is complete, redirect to login
   if (!user) {
     console.log('No user found, redirecting to login');
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
+  // Check role-based access if specified
   if (allowedRoles && profile && !allowedRoles.includes(profile.role)) {
     return <Navigate to="/unauthorized" replace />;
   }
