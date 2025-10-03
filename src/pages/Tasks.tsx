@@ -42,6 +42,7 @@ const useStyles = createStyles(({ token }) => ({
   container: {
     "&&": {
       minHeight: "100vh",
+      backgroundColor: token.colorBgLayout,
       "@media (max-width: 768px)": {
         padding: token.paddingSM,
       },
@@ -200,6 +201,12 @@ const useStyles = createStyles(({ token }) => ({
     },
   },
 
+  dueDateIcon: {
+    "&&": {
+      // Styles will be applied inline as they depend on dynamic values
+    },
+  },
+
   doneTask: {
     "&&": {
       backgroundColor: token.colorFillAlter,
@@ -218,9 +225,25 @@ const useStyles = createStyles(({ token }) => ({
       gap: token.marginXS,
     },
   },
+  
+  modal: {
+    "&&": {
+      header: {
+        padding: token.paddingLG,
+        paddingBottom: token.paddingMD,
+        borderBottom: `${token.lineWidth}px ${token.lineType} ${token.colorBorderSecondary}`
+      },
+      body: {
+        padding: token.paddingLG
+      },
+      footer: {
+        padding: token.paddingMD,
+        paddingTop: token.paddingLG,
+        borderTop: `${token.lineWidth}px ${token.lineType} ${token.colorBorderSecondary}`
+      }
+    },
+  },
 }));
-
-
 
 export function Tasks() {
   const { styles } = useStyles();
@@ -324,7 +347,6 @@ export function Tasks() {
     }
   };
 
-
   const renderDueDate = (due_date: string) => {
     const date = dayjs(due_date);
     const isOverdue = date.isBefore(dayjs(), 'day');
@@ -333,6 +355,7 @@ export function Tasks() {
     return (
       <Space className={styles.dueDateContainer}>
         <CalendarOutlined
+          className={styles.dueDateIcon}
           style={{
             color: isOverdue ? token.colorError : isToday ? token.colorWarning : token.colorTextSecondary,
             fontSize: token.fontSizeSM

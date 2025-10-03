@@ -1,13 +1,227 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Card, Row, Col, Statistic, Table, Typography, theme, Progress, Tabs } from 'antd';
-import { Column, Pie, Line, Bar, DualAxes, Area } from '@ant-design/charts';
+import { Card, Row, Col, Statistic, Table, Typography, theme, Tabs } from 'antd';
+import { Column, Pie, Line, } from '@ant-design/charts';
 import { leadsService } from '../services/leadsService';
 import { dealsService } from '../services/dealsService';
 import { tasksService } from '../services/tasksService';
 import type { Lead, Deal, Task } from '../types';
+import { createStyles } from 'antd-style';
+import type { TableProps } from 'antd';
 
 const { Title, Text } = Typography;
-const { TabPane } = Tabs;
+
+// Styled components using antd-style
+const useStyles = createStyles(({ token }) => ({
+  container: {
+    "&&": {
+      padding: token.paddingXS,
+      background: token.colorBgLayout,
+      minHeight: '100%',
+      "@media (max-width: 768px)": {
+        padding: token.paddingSM,
+      },
+    },
+  },
+
+  header: {
+    "&&": {
+      marginBottom: token.marginXL,
+      "@media (max-width: 768px)": {
+        marginBottom: token.marginLG,
+      },
+    },
+  },
+
+  title: {
+    "&&": {
+      margin: 0,
+      color: token.colorText,
+      fontSize: 32,
+      fontWeight: token.fontWeightStrong,
+      "@media (max-width: 768px)": {
+        fontSize: 24,
+      },
+    },
+  },
+
+  subtitle: {
+    "&&": {
+      fontSize: token.fontSizeLG,
+      display: 'block',
+      marginTop: token.marginXS,
+      "@media (max-width: 768px)": {
+        fontSize: token.fontSize,
+      },
+    },
+  },
+
+  statsRow: {
+    "&&": {
+      marginBottom: token.marginLG,
+    },
+  },
+
+  statCard: {
+    "&&": {
+      borderRadius: token.borderRadiusLG,
+      boxShadow: token.boxShadow,
+      "&.blue-card": {
+        background: `linear-gradient(135deg, ${token.colorPrimary} 0%, ${token.colorPrimary}E0 100%)`,
+      },
+      "&.green-card": {
+        background: `linear-gradient(135deg, ${token.colorSuccess} 0%, ${token.colorSuccess}E0 100%)`,
+      },
+      "&.orange-card": {
+        background: `linear-gradient(135deg, ${token.colorWarning} 0%, ${token.colorWarning}E0 100%)`,
+      },
+      "&.red-card": {
+        background: `linear-gradient(135deg, ${token.colorError} 0%, ${token.colorError}E0 100%)`,
+      },
+      "@media (max-width: 768px)": {
+        marginBottom: token.marginSM,
+      },
+    },
+  },
+
+  statTitle: {
+    "&&": {
+      color: token.colorTextLightSolid,
+      fontSize: token.fontSizeSM,
+      fontWeight: token.fontWeightStrong,
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+    },
+  },
+
+  statValue: {
+    "&&": {
+      color: token.colorTextLightSolid,
+      fontSize: 28,
+      fontWeight: token.fontWeightStrong,
+      "@media (max-width: 768px)": {
+        fontSize: 24,
+      },
+    },
+  },
+
+  statDescription: {
+    "&&": {
+      color: token.colorTextLightSolid,
+      fontSize: token.fontSizeSM,
+      opacity: 0.8,
+    },
+  },
+
+  performanceRow: {
+    "&&": {
+      marginTop: token.marginLG,
+      "@media (max-width: 768px)": {
+        marginTop: token.marginMD,
+      },
+    },
+  },
+
+  performanceCard: {
+    "&&": {
+      borderRadius: token.borderRadiusLG,
+      boxShadow: token.boxShadow,
+    },
+  },
+
+  performanceTitle: {
+    "&&": {
+      fontSize: token.fontSizeLG,
+      fontWeight: token.fontWeightStrong,
+      color: token.colorText,
+      "@media (max-width: 768px)": {
+        fontSize: token.fontSize,
+      },
+    },
+  },
+
+  performanceValue: {
+    "&&": {
+      fontSize: 32,
+      fontWeight: 'bold',
+      "@media (max-width: 768px)": {
+        fontSize: 28,
+      },
+    },
+  },
+
+  chartTabs: {
+    "&&": {
+      marginTop: token.marginLG,
+      "@media (max-width: 768px)": {
+        marginTop: token.marginMD,
+      },
+    },
+  },
+
+  chartCard: {
+    "&&": {
+      borderRadius: token.borderRadiusLG,
+      boxShadow: token.boxShadow,
+    },
+  },
+
+  chartTitle: {
+    "&&": {
+      fontSize: token.fontSizeLG,
+      fontWeight: token.fontWeightStrong,
+      color: token.colorText,
+      "@media (max-width: 768px)": {
+        fontSize: token.fontSize,
+      },
+    },
+  },
+
+  tablesRow: {
+    "&&": {
+      marginTop: token.marginLG,
+      "@media (max-width: 768px)": {
+        marginTop: token.marginMD,
+      },
+    },
+  },
+
+  tableCard: {
+    "&&": {
+      borderRadius: token.borderRadiusLG,
+      boxShadow: token.boxShadow,
+    },
+  },
+
+  tableTitle: {
+    "&&": {
+      fontSize: token.fontSizeLG,
+      fontWeight: token.fontWeightStrong,
+      color: token.colorText,
+      "@media (max-width: 768px)": {
+        fontSize: token.fontSize,
+      },
+    },
+  },
+
+  table: {
+    "&&": {
+      borderRadius: token.borderRadius,
+      overflowX: 'auto',
+      "@media (max-width: 768px)": {
+        maxWidth: '100%',
+      },
+    },
+  },
+
+  tableContainer: {
+    "&&": {
+      overflowX: 'auto',
+      "@media (max-width: 768px)": {
+        maxWidth: '100%',
+      },
+    },
+  },
+}));
 
 function formatMonthLabel(dateStr: string) {
   const d = new Date(dateStr);
@@ -15,6 +229,7 @@ function formatMonthLabel(dateStr: string) {
 }
 
 export function Dashboard() {
+  const { styles } = useStyles();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [deals, setDeals] = useState<Deal[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -199,20 +414,67 @@ export function Dashboard() {
     point: { size: 4, shape: 'diamond' },
   };
 
-  const leadColumns = [
-    { title: 'Name', dataIndex: 'name', key: 'name' },
-    { title: 'Email', dataIndex: 'email', key: 'email' },
-    { title: 'Company', dataIndex: 'company', key: 'company' },
-    { title: 'Status', dataIndex: 'status', key: 'status' },
-    { title: 'Created', dataIndex: 'created_at', key: 'created_at', render: (t: string) => new Date(t).toLocaleDateString() },
+  const leadColumns: TableProps<Lead>['columns'] = [
+    {
+      title: 'Name',
+      dataIndex: 'name',
+      key: 'name',
+    },
+    {
+      title: 'Email',
+      dataIndex: 'email',
+      key: 'email',
+      responsive: ['lg'],
+    },
+    {
+      title: 'Company',
+      dataIndex: 'company',
+      key: 'company',
+      responsive: ['lg'],
+    },
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+    },
+    {
+      title: 'Created',
+      dataIndex: 'created_at',
+      key: 'created_at',
+      render: (t: string) => new Date(t).toLocaleDateString(),
+    },
   ];
 
-  const taskColumns = [
-    { title: 'Title', dataIndex: 'title', key: 'title' },
-    { title: 'Lead', dataIndex: ['lead', 'name'], key: 'lead' },
-    { title: 'Due', dataIndex: 'due_date', key: 'due_date', render: (t: string) => t ? new Date(t).toLocaleDateString() : '' },
-    { title: 'Status', dataIndex: 'status', key: 'status' },
-    { title: 'Created', dataIndex: 'created_at', key: 'created_at', render: (t: string) => new Date(t).toLocaleDateString() },
+  const taskColumns: TableProps<Task>['columns'] = [
+    {
+      title: 'Title',
+      dataIndex: 'title',
+      key: 'title',
+    },
+    {
+      title: 'Lead',
+      dataIndex: ['lead', 'name'],
+      key: 'lead',
+      responsive: ['lg'],
+    },
+    {
+      title: 'Due',
+      dataIndex: 'due_date',
+      key: 'due_date',
+      render: (t: string) => t ? new Date(t).toLocaleDateString() : '',
+    },
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+    },
+    {
+      title: 'Created',
+      dataIndex: 'created_at',
+      key: 'created_at',
+      render: (t: string) => new Date(t).toLocaleDateString(),
+      responsive: ['lg'],
+    },
   ];
 
   // Chart configs
@@ -247,81 +509,23 @@ export function Dashboard() {
     area: { style: { fill: 'l(270) 0:#ffffff 1:#d6e4ff' } },
   };
 
-  // New advanced charts
-  const dualAxesConfig = {
-    data: [monthlyRevenue.map(m => ({ month: formatMonthLabel(m.month), revenue: m.revenue })),
-    tasksOverTime.map(t => ({ month: formatMonthLabel(t.month), tasks: t.count }))],
-    xField: 'month',
-    yField: ['revenue', 'tasks'],
-    height: 300,
-    geometryOptions: [
-      {
-        geometry: 'line',
-        smooth: true,
-        color: '#1C6EA4',
-      },
-      {
-        geometry: 'line',
-        smooth: true,
-        color: '#FF6B35',
-      },
-    ],
-  };
-
-  const areaConfig = {
-    data: monthlyRevenue.map(m => ({ month: formatMonthLabel(m.month), revenue: m.revenue })),
-    xField: 'month',
-    yField: 'revenue',
-    height: 300,
-    areaStyle: () => {
-      return {
-        fill: 'l(270) 0:#ffffff 1:#1C6EA4',
-      };
-    },
-  };
-
   return (
-    <div style={{
-      padding: token.paddingXS,
-      background: token.colorBgLayout,
-      minHeight: '100%',
-    }}>
+    <div className={styles.container}>
       {/* Dashboard Header */}
-      <div style={{
-        marginBottom: token.marginXL,
-      }}>
-        <Title
-          level={3}
-          style={{
-            margin: 0,
-            color: token.colorText,
-            fontSize: 32,
-            fontWeight: token.fontWeightStrong,
-          }}
-        >
+      <div className={styles.header}>
+        <Title level={3} className={styles.title}>
           Dashboard
         </Title>
-        <Text
-          type="secondary"
-          style={{
-            fontSize: token.fontSizeLG,
-            display: 'block',
-            marginTop: token.marginXS,
-          }}
-        >
+        <Text type="secondary" className={styles.subtitle}>
           Welcome back! Here's an overview of your CRM data.
         </Text>
       </div>
 
       {/* Statistics Cards */}
-      <Row gutter={[token.marginLG, token.marginLG]}>
+      <Row gutter={[token.marginLG, token.marginLG]} className={styles.statsRow}>
         <Col xs={24} sm={12} lg={6}>
           <Card
-            style={{
-              background: `linear-gradient(135deg, ${token.colorPrimary} 0%, ${token.colorPrimary}E0 100%)`,
-              borderRadius: token.borderRadiusLG,
-              boxShadow: token.boxShadow,
-            }}
+            className={`${styles.statCard} blue-card`}
             styles={{
               body: {
                 padding: token.paddingLG,
@@ -329,17 +533,7 @@ export function Dashboard() {
             }}
           >
             <Statistic
-              title={
-                <Text style={{
-                  color: token.colorTextLightSolid,
-                  fontSize: token.fontSizeSM,
-                  fontWeight: token.fontWeightStrong,
-                  textTransform: 'uppercase',
-                  letterSpacing: 0.5,
-                }}>
-                  Total Leads
-                </Text>
-              }
+              title={<Text className={styles.statTitle}>Total Leads</Text>}
               value={totalLeads}
               valueStyle={{
                 color: token.colorTextLightSolid,
@@ -347,11 +541,7 @@ export function Dashboard() {
                 fontWeight: token.fontWeightStrong,
               }}
             />
-            <Text style={{
-              color: token.colorTextLightSolid,
-              fontSize: token.fontSizeSM,
-              opacity: 0.8,
-            }}>
+            <Text className={styles.statDescription}>
               New leads collected
             </Text>
           </Card>
@@ -359,11 +549,7 @@ export function Dashboard() {
 
         <Col xs={24} sm={12} lg={6}>
           <Card
-            style={{
-              background: `linear-gradient(135deg, ${token.colorSuccess} 0%, ${token.colorSuccess}E0 100%)`,
-              borderRadius: token.borderRadiusLG,
-              boxShadow: token.boxShadow,
-            }}
+            className={`${styles.statCard} green-card`}
             styles={{
               body: {
                 padding: token.paddingLG,
@@ -371,17 +557,7 @@ export function Dashboard() {
             }}
           >
             <Statistic
-              title={
-                <Text style={{
-                  color: token.colorTextLightSolid,
-                  fontSize: token.fontSizeSM,
-                  fontWeight: token.fontWeightStrong,
-                  textTransform: 'uppercase',
-                  letterSpacing: 0.5,
-                }}>
-                  Total Deals
-                </Text>
-              }
+              title={<Text className={styles.statTitle}>Total Deals</Text>}
               value={totalDeals}
               valueStyle={{
                 color: token.colorTextLightSolid,
@@ -389,11 +565,7 @@ export function Dashboard() {
                 fontWeight: token.fontWeightStrong,
               }}
             />
-            <Text style={{
-              color: token.colorTextLightSolid,
-              fontSize: token.fontSizeSM,
-              opacity: 0.8,
-            }}>
+            <Text className={styles.statDescription}>
               Deals in pipeline
             </Text>
           </Card>
@@ -401,11 +573,7 @@ export function Dashboard() {
 
         <Col xs={24} sm={12} lg={6}>
           <Card
-            style={{
-              background: `linear-gradient(135deg, ${token.colorWarning} 0%, ${token.colorWarning}E0 100%)`,
-              borderRadius: token.borderRadiusLG,
-              boxShadow: token.boxShadow,
-            }}
+            className={`${styles.statCard} orange-card`}
             styles={{
               body: {
                 padding: token.paddingLG,
@@ -413,17 +581,7 @@ export function Dashboard() {
             }}
           >
             <Statistic
-              title={
-                <Text style={{
-                  color: token.colorTextLightSolid,
-                  fontSize: token.fontSizeSM,
-                  fontWeight: token.fontWeightStrong,
-                  textTransform: 'uppercase',
-                  letterSpacing: 0.5,
-                }}>
-                  Deal Value
-                </Text>
-              }
+              title={<Text className={styles.statTitle}>Deal Value</Text>}
               value={totalDealValue}
               precision={0}
               prefix="$"
@@ -433,11 +591,7 @@ export function Dashboard() {
                 fontWeight: token.fontWeightStrong,
               }}
             />
-            <Text style={{
-              color: token.colorTextLightSolid,
-              fontSize: token.fontSizeSM,
-              opacity: 0.8,
-            }}>
+            <Text className={styles.statDescription}>
               Combined value of deals
             </Text>
           </Card>
@@ -445,11 +599,7 @@ export function Dashboard() {
 
         <Col xs={24} sm={12} lg={6}>
           <Card
-            style={{
-              background: `linear-gradient(135deg, ${token.colorInfo} 0%, ${token.colorInfo}E0 100%)`,
-              borderRadius: token.borderRadiusLG,
-              boxShadow: token.boxShadow,
-            }}
+            className={`${styles.statCard} red-card`}
             styles={{
               body: {
                 padding: token.paddingLG,
@@ -457,17 +607,7 @@ export function Dashboard() {
             }}
           >
             <Statistic
-              title={
-                <Text style={{
-                  color: token.colorTextLightSolid,
-                  fontSize: token.fontSizeSM,
-                  fontWeight: token.fontWeightStrong,
-                  textTransform: 'uppercase',
-                  letterSpacing: 0.5,
-                }}>
-                  Conversion Rate
-                </Text>
-              }
+              title={<Text className={styles.statTitle}>Conversion Rate</Text>}
               value={conversionRate}
               suffix="%"
               valueStyle={{
@@ -476,11 +616,7 @@ export function Dashboard() {
                 fontWeight: token.fontWeightStrong,
               }}
             />
-            <Text style={{
-              color: token.colorTextLightSolid,
-              fontSize: token.fontSizeSM,
-              opacity: 0.8,
-            }}>
+            <Text className={styles.statDescription}>
               Won deals rate
             </Text>
           </Card>
@@ -488,22 +624,11 @@ export function Dashboard() {
       </Row>
 
       {/* Performance Metrics */}
-      <Row gutter={[token.marginLG, token.marginLG]} style={{ marginTop: token.marginLG }}>
+      <Row gutter={[token.marginLG, token.marginLG]} className={styles.performanceRow}>
         <Col xs={24} sm={12} lg={6}>
           <Card
-            title={
-              <Text style={{
-                fontSize: token.fontSizeLG,
-                fontWeight: token.fontWeightStrong,
-                color: token.colorText,
-              }}>
-                Recent Leads (30 days)
-              </Text>
-            }
-            style={{
-              borderRadius: token.borderRadiusLG,
-              boxShadow: token.boxShadow,
-            }}
+            title={<Text className={styles.performanceTitle}>Recent Leads (30 days)</Text>}
+            className={styles.performanceCard}
             styles={{
               body: {
                 padding: token.paddingLG,
@@ -511,7 +636,7 @@ export function Dashboard() {
               }
             }}
           >
-            <div style={{ fontSize: 32, fontWeight: 'bold', color: token.colorPrimary }}>
+            <div className={styles.performanceValue} style={{ color: token.colorPrimary }}>
               {performanceMetrics.leads}
             </div>
             <Text type="secondary">New leads in the last 30 days</Text>
@@ -520,19 +645,8 @@ export function Dashboard() {
 
         <Col xs={24} sm={12} lg={6}>
           <Card
-            title={
-              <Text style={{
-                fontSize: token.fontSizeLG,
-                fontWeight: token.fontWeightStrong,
-                color: token.colorText,
-              }}>
-                Recent Deals (30 days)
-              </Text>
-            }
-            style={{
-              borderRadius: token.borderRadiusLG,
-              boxShadow: token.boxShadow,
-            }}
+            title={<Text className={styles.performanceTitle}>Recent Deals (30 days)</Text>}
+            className={styles.performanceCard}
             styles={{
               body: {
                 padding: token.paddingLG,
@@ -540,7 +654,7 @@ export function Dashboard() {
               }
             }}
           >
-            <div style={{ fontSize: 32, fontWeight: 'bold', color: token.colorSuccess }}>
+            <div className={styles.performanceValue} style={{ color: token.colorSuccess }}>
               {performanceMetrics.deals}
             </div>
             <Text type="secondary">New deals in the last 30 days</Text>
@@ -549,19 +663,8 @@ export function Dashboard() {
 
         <Col xs={24} sm={12} lg={6}>
           <Card
-            title={
-              <Text style={{
-                fontSize: token.fontSizeLG,
-                fontWeight: token.fontWeightStrong,
-                color: token.colorText,
-              }}>
-                Won Deals (30 days)
-              </Text>
-            }
-            style={{
-              borderRadius: token.borderRadiusLG,
-              boxShadow: token.boxShadow,
-            }}
+            title={<Text className={styles.performanceTitle}>Won Deals (30 days)</Text>}
+            className={styles.performanceCard}
             styles={{
               body: {
                 padding: token.paddingLG,
@@ -569,7 +672,7 @@ export function Dashboard() {
               }
             }}
           >
-            <div style={{ fontSize: 32, fontWeight: 'bold', color: token.colorWarning }}>
+            <div className={styles.performanceValue} style={{ color: token.colorWarning }}>
               {performanceMetrics.wonDeals}
             </div>
             <Text type="secondary">Deals won in the last 30 days</Text>
@@ -581,7 +684,7 @@ export function Dashboard() {
       <Tabs
         defaultActiveKey="1"
         size="large"
-        style={{ marginTop: token.marginLG }}
+        className={styles.chartTabs}
         items={[
           {
             key: '1',
@@ -590,19 +693,8 @@ export function Dashboard() {
               <Row gutter={[token.marginLG, token.marginLG]}>
                 <Col xs={24} lg={12} xl={10}>
                   <Card
-                    title={
-                      <Text style={{
-                        fontSize: token.fontSizeLG,
-                        fontWeight: token.fontWeightStrong,
-                        color: token.colorText,
-                      }}>
-                        Deals by Stage (Total Value)
-                      </Text>
-                    }
-                    style={{
-                      borderRadius: token.borderRadiusLG,
-                      boxShadow: token.boxShadow,
-                    }}
+                    title={<Text className={styles.chartTitle}>Deals by Stage (Total Value)</Text>}
+                    className={styles.chartCard}
                     styles={{
                       body: {
                         padding: token.paddingLG,
@@ -615,19 +707,8 @@ export function Dashboard() {
 
                 <Col xs={24} lg={12} xl={7}>
                   <Card
-                    title={
-                      <Text style={{
-                        fontSize: token.fontSizeLG,
-                        fontWeight: token.fontWeightStrong,
-                        color: token.colorText,
-                      }}>
-                        Leads by Status
-                      </Text>
-                    }
-                    style={{
-                      borderRadius: token.borderRadiusLG,
-                      boxShadow: token.boxShadow,
-                    }}
+                    title={<Text className={styles.chartTitle}>Leads by Status</Text>}
+                    className={styles.chartCard}
                     styles={{
                       body: {
                         padding: token.paddingLG,
@@ -640,19 +721,8 @@ export function Dashboard() {
 
                 <Col xs={24} xl={7}>
                   <Card
-                    title={
-                      <Text style={{
-                        fontSize: token.fontSizeLG,
-                        fontWeight: token.fontWeightStrong,
-                        color: token.colorText,
-                      }}>
-                        Monthly Revenue
-                      </Text>
-                    }
-                    style={{
-                      borderRadius: token.borderRadiusLG,
-                      boxShadow: token.boxShadow,
-                    }}
+                    title={<Text className={styles.chartTitle}>Monthly Revenue</Text>}
+                    className={styles.chartCard}
                     styles={{
                       body: {
                         padding: token.paddingLG,
@@ -672,19 +742,8 @@ export function Dashboard() {
               <Row gutter={[token.marginLG, token.marginLG]}>
                 <Col xs={24} lg={12} xl={8}>
                   <Card
-                    title={
-                      <Text style={{
-                        fontSize: token.fontSizeLG,
-                        fontWeight: token.fontWeightStrong,
-                        color: token.colorText,
-                      }}>
-                        Top Clients by Task Count
-                      </Text>
-                    }
-                    style={{
-                      borderRadius: token.borderRadiusLG,
-                      boxShadow: token.boxShadow,
-                    }}
+                    title={<Text className={styles.chartTitle}>Top Clients by Task Count</Text>}
+                    className={styles.chartCard}
                     styles={{
                       body: {
                         padding: token.paddingLG,
@@ -697,19 +756,8 @@ export function Dashboard() {
 
                 <Col xs={24} lg={12} xl={8}>
                   <Card
-                    title={
-                      <Text style={{
-                        fontSize: token.fontSizeLG,
-                        fontWeight: token.fontWeightStrong,
-                        color: token.colorText,
-                      }}>
-                        Tasks by Status
-                      </Text>
-                    }
-                    style={{
-                      borderRadius: token.borderRadiusLG,
-                      boxShadow: token.boxShadow,
-                    }}
+                    title={<Text className={styles.chartTitle}>Tasks by Status</Text>}
+                    className={styles.chartCard}
                     styles={{
                       body: {
                         padding: token.paddingLG,
@@ -722,19 +770,8 @@ export function Dashboard() {
 
                 <Col xs={24} xl={8}>
                   <Card
-                    title={
-                      <Text style={{
-                        fontSize: token.fontSizeLG,
-                        fontWeight: token.fontWeightStrong,
-                        color: token.colorText,
-                      }}>
-                        Tasks Over Time
-                      </Text>
-                    }
-                    style={{
-                      borderRadius: token.borderRadiusLG,
-                      boxShadow: token.boxShadow,
-                    }}
+                    title={<Text className={styles.chartTitle}>Tasks Over Time</Text>}
+                    className={styles.chartCard}
                     styles={{
                       body: {
                         padding: token.paddingLG,
@@ -751,72 +788,52 @@ export function Dashboard() {
       />
 
       {/* Recent Data Tables */}
-      <Row gutter={[token.marginLG, token.marginLG]} style={{ marginTop: token.marginLG }}>
+      <Row gutter={[token.marginLG, token.marginLG]} className={styles.tablesRow}>
         <Col xs={24} lg={12}>
           <Card
-            title={
-              <Text style={{
-                fontSize: token.fontSizeLG,
-                fontWeight: token.fontWeightStrong,
-                color: token.colorText,
-              }}>
-                Recent Tasks
-              </Text>
-            }
-            style={{
-              borderRadius: token.borderRadiusLG,
-              boxShadow: token.boxShadow,
-            }}
+            title={<Text className={styles.tableTitle}>Recent Tasks</Text>}
+            className={styles.tableCard}
             styles={{
               body: {
                 padding: token.paddingLG,
               }
             }}
           >
-            <Table
-              dataSource={recentTasks}
-              columns={taskColumns}
-              rowKey="id"
-              pagination={false}
-              size="small"
-              style={{
-                borderRadius: token.borderRadius,
-              }}
-            />
+            <div className={styles.tableContainer}>
+              <Table
+                dataSource={recentTasks}
+                columns={taskColumns}
+                rowKey="id"
+                pagination={false}
+                size="small"
+                className={styles.table}
+                scroll={{ x: true }}
+              />
+            </div>
           </Card>
         </Col>
 
         <Col xs={24} lg={12}>
           <Card
-            title={
-              <Text style={{
-                fontSize: token.fontSizeLG,
-                fontWeight: token.fontWeightStrong,
-                color: token.colorText,
-              }}>
-                Recent Leads
-              </Text>
-            }
-            style={{
-              borderRadius: token.borderRadiusLG,
-              boxShadow: token.boxShadow,
-            }}
+            title={<Text className={styles.tableTitle}>Recent Leads</Text>}
+            className={styles.tableCard}
             styles={{
               body: {
                 padding: token.paddingLG,
               }
             }}
           >
-            <Table
-              dataSource={recentLeads}
-              columns={leadColumns}
-              rowKey="id"
-              pagination={false}
-              size="small"
-              style={{
-                borderRadius: token.borderRadius,
-              }}
-            />
+            <div className={styles.tableContainer}>
+              <Table
+                dataSource={recentLeads}
+                columns={leadColumns}
+                rowKey="id"
+                pagination={false}
+                size="small"
+                className={styles.table}
+                scroll={{ x: true }}
+              />
+            </div>
           </Card>
         </Col>
       </Row>
