@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Card, Typography, Space, Button, Tooltip } from 'antd';
+import { Card, Typography, Space, Button, Tooltip, theme, Tag } from 'antd';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { DragOutlined, EditOutlined, CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
@@ -23,31 +23,55 @@ export function DealCard({ deal, style: parentStyle, openAddDealModal }: DealCar
     isDragging,
   } = useSortable({ id: String(deal.id) });
 
+  const { token } = theme.useToken();
+
   // Memoize deal data to prevent unnecessary re-renders
   const memoizedDeal = useMemo(() => deal, [deal]);
 
-  // Map stage to icon and color
+  // Map stage to icon, color, and status using theme tokens
   const stageConfig = useMemo(() => {
     switch (memoizedDeal.stage) {
       case 'Won':
-        return { icon: <CheckCircleOutlined />, color: '#52c41a' };
+        return {
+          icon: <CheckCircleOutlined />,
+          color: token.colorSuccess,
+          bgColor: `${token.colorSuccess}15`,
+          status: 'Won'
+        };
       case 'Lost':
-        return { icon: <CloseCircleOutlined />, color: '#ff4d4f' };
+        return {
+          icon: <CloseCircleOutlined />,
+          color: token.colorError,
+          bgColor: `${token.colorError}15`,
+          status: 'Lost'
+        };
       case 'In Progress':
-        return { icon: <ClockCircleOutlined />, color: '#1890ff' };
+        return {
+          icon: <ClockCircleOutlined />,
+          color: token.colorInfo,
+          bgColor: `${token.colorInfo}15`,
+          status: 'In Progress'
+        };
       case 'New':
       default:
-        return { icon: <ClockCircleOutlined />, color: '#fa8c16' };
+        return {
+          icon: <ClockCircleOutlined />,
+          color: token.colorWarning,
+          bgColor: `${token.colorWarning}15`,
+          status: 'New'
+        };
     }
-  }, [memoizedDeal.stage]);
+  }, [memoizedDeal.stage, token]);
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.7 : 1,
     cursor: 'grab',
-    boxShadow: isDragging ? '0 4px 12px rgba(0, 0, 0, 0.2)' : '0 1px 4px rgba(0, 0, 0, 0.1)',
-    borderRadius: 6,
+    boxShadow: isDragging
+      ? `0 8px 24px ${token.colorPrimary}33`
+      : `0 2px 8px ${token.colorBorder}66`,
+    borderRadius: token.borderRadiusLG,
     ...parentStyle,
   };
 
@@ -63,47 +87,157 @@ export function DealCard({ deal, style: parentStyle, openAddDealModal }: DealCar
         size="small"
         hoverable
         style={{
-          marginBottom: 12,
-          border: `1px solid ${stageConfig.color}`,
-          borderRadius: 6,
-          background: '#fff',
+          marginBottom: token.marginLG,
+          border: `2px solid ${stageConfig.color}33`,
+          borderRadius: token.borderRadiusLG,
+          background: token.colorBgContainer,
           cursor: isDragging ? 'grabbing' : 'grab',
+          transition: `all ${token.motionDurationMid}`,
+          boxShadow: isDragging
+            ? `0 8px 24px ${token.colorPrimary}33`
+            : `0 2px 8px ${token.colorBorder}66`,
         }}
-        bodyStyle={{ padding: 12 }}
+        styles={{
+          body: {
+            padding: token.paddingLG,
+          }
+        }}
       >
-        <Space direction="vertical" style={{ width: '100%' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Title level={5} style={{ margin: 0, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {memoizedDeal.title}
-            </Title>
+        <Space direction="vertical" style={{ width: '100%' }} size={token.marginSM}>
+          {/* Header with title and drag handle */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            gap: token.marginSM,
+          }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <Title
+                level={5}
+                style={{
+                  margin: 0,
+                  color: token.colorText,
+                  fontSize: token.fontSizeLG,
+                  fontWeight: token.fontWeightStrong,
+                  lineHeight: 1.3,
+                }}
+                ellipsis={{ tooltip: memoizedDeal.title }}
+              >
+                {memoizedDeal.title}
+              </Title>
+            </div>
             <Tooltip title="Drag to move">
-              <DragOutlined style={{ fontSize: 16, color: '#8c8c8c' }} />
+              <Button
+                type="text"
+                size="small"
+                icon={<DragOutlined />}
+                style={{
+                  color: token.colorTextSecondary,
+                  cursor: 'grab',
+                  fontSize: token.fontSizeLG,
+                }}
+                aria-label="Drag handle"
+              />
             </Tooltip>
           </div>
-          <Space direction="horizontal" size={8} style={{ width: '100%' }}>
-            <Text type="secondary">
-              <strong>Lead:</strong> {memoizedDeal.lead?.name || 'Unassigned'}
-            </Text>
-            {memoizedDeal.assigneeName && (
-              <Text type="secondary">
-                <strong>Assignee:</strong> {memoizedDeal.assigneeName}
+
+          {/* Stage indicator */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: token.marginXS,
+          }}>
+            <Tag
+              color={stageConfig.status}
+              style={{
+                margin: 0,
+                borderRadius: token.borderRadiusSM,
+                fontSize: token.fontSizeSM,
+                padding: `${token.paddingXXS}px ${token.paddingXS}px`,
+              }}
+            >
+              {stageConfig.icon}
+              <span style={{ marginLeft: token.marginXXS }}>
+                {stageConfig.status}
+              </span>
+            </Tag>
+          </div>
+
+          {/* Deal information */}
+          <Space direction="vertical" style={{ width: '100%' }} size={token.marginXS}>
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: token.marginXXS,
+            }}>
+              <Text
+                type="secondary"
+                style={{
+                  fontSize: token.fontSizeSM,
+                  lineHeight: 1.4,
+                }}
+              >
+                <strong>Lead:</strong> {memoizedDeal.lead?.name || 'Unassigned'}
               </Text>
-            )}
+              {memoizedDeal.assigneeName && (
+                <Text
+                  type="secondary"
+                  style={{
+                    fontSize: token.fontSizeSM,
+                    lineHeight: 1.4,
+                  }}
+                >
+                  <strong>Assignee:</strong> {memoizedDeal.assigneeName}
+                </Text>
+              )}
+            </div>
+
+            {/* Deal value */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: `${token.paddingSM}px ${token.padding}px`,
+              background: stageConfig.bgColor,
+              borderRadius: token.borderRadiusSM,
+              border: `1px solid ${stageConfig.color}33`,
+            }}>
+              <Text
+                strong
+                style={{
+                  color: stageConfig.color,
+                  fontSize: token.fontSizeLG,
+                  fontWeight: token.fontWeightStrong,
+                }}
+              >
+                ${memoizedDeal.value?.toLocaleString()}
+              </Text>
+              <div style={{ color: stageConfig.color }}>
+                {stageConfig.icon}
+              </div>
+            </div>
           </Space>
-          <Space direction="horizontal" size={8} style={{ width: '100%', alignItems: 'center' }}>
-            <Text strong style={{ color: stageConfig.color }}>
-              ${memoizedDeal.value?.toLocaleString()}
-            </Text>
-            <span style={{ color: stageConfig.color }}>{stageConfig.icon}</span>
-          </Space>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
+
+          {/* Action buttons */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            marginTop: token.marginSM,
+            borderTop: `1px solid ${token.colorBorderSecondary}`,
+            paddingTop: token.marginSM,
+          }}>
             <Tooltip title="Edit Deal">
               <Button
-                type="link"
+                type="text"
+                size="small"
                 icon={<EditOutlined />}
                 onClick={(e) => {
                   e.stopPropagation();
                   openAddDealModal?.(memoizedDeal.id);
+                }}
+                style={{
+                  color: token.colorTextSecondary,
+                  borderRadius: token.borderRadius,
                 }}
                 aria-label={`Edit deal: ${memoizedDeal.title}`}
               />
