@@ -129,7 +129,7 @@ export function Dashboard() {
   };
 
   return (
-    <div>
+    <div style={{ padding: 16 }}>
       <Title level={4} >Dashboard</Title>
       <Row gutter={[16, 16]} >
         <Col xs={24} sm={12} md={6}>
@@ -157,7 +157,6 @@ export function Dashboard() {
           </Card>
         </Col>
       </Row>
-
       <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
         <Col xs={24} lg={12} xl={10}>
           <Card title="Deals by Stage (Total Value)">
@@ -177,7 +176,6 @@ export function Dashboard() {
           </Card>
         </Col>
       </Row>
-
       <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
         <Col xs={24} lg={24}>
           <Card title="Recent Leads">

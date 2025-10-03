@@ -19,9 +19,8 @@ export function AppLayout() {
         collapsible
         collapsed={collapsed}
         onCollapse={setCollapsed}
-        breakpoint="lg"
+        breakpoint="md"
         collapsedWidth={80}
-        style={{ background: token.colorSuccess }}
       >
         <div>
           <h2>CRM</h2>

@@ -145,6 +145,12 @@ export function Tasks() {
             Done
           </Tag>
         );
+      case 'In Progress':
+        return (
+          <Tag color="yellow" icon={<CheckCircleOutlined />}>
+            In Progress
+          </Tag>
+        );
       default:
         return (
           <Tag color="blue" icon={<CheckCircleOutlined />}>
@@ -186,6 +192,11 @@ export function Tasks() {
       key: 'Pending',
       label: 'Pending',
       onClick: () => setFilterStatus('Pending'),
+    },
+    {
+      key: 'In Progress',
+      label: 'In Progress',
+      onClick: () => setFilterStatus('In Progress'),
     },
     {
       key: 'Done',
@@ -405,6 +416,7 @@ export function Tasks() {
               >
                 <Select>
                   <Option value="Pending">Pending</Option>
+                  <Option value="Pending">In Progress</Option>
                   <Option value="Done">Done</Option>
                 </Select>
               </Form.Item>

@@ -75,6 +75,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.warn('Could not read localStorage during auth init:', err);
     }
 
+    // Clear Supabase-related localStorage keys on tab/window close so the app
+    // always requires a fresh login when reopened.
+    const handleBeforeUnload = () => {
+      try {
+        const keys = Object.keys(localStorage).filter(k => k.startsWith('sb-') || k.includes('supabase'));
+        keys.forEach(k => localStorage.removeItem(k));
+        console.log('Cleared Supabase-related localStorage keys on beforeunload:', keys);
+      } catch (err) {
+        console.warn('Error clearing localStorage on beforeunload:', err);
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       console.log("Auth state changed:", _event, session ? "Session exists" : "No session");
@@ -108,8 +122,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => {
       subscription.unsubscribe();
+      window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, []);
+
+  // Helper to remove Supabase-related localStorage keys. Reusable from
+  // signOut and other places.
+  function clearSupabaseLocalStorage() {
+    try {
+      const keys = Object.keys(localStorage).filter(k => k.startsWith('sb-') || k.includes('supabase'));
+      keys.forEach(k => localStorage.removeItem(k));
+      console.log('Cleared Supabase-related localStorage keys:', keys);
+    } catch (err) {
+      console.warn('Error clearing Supabase-related localStorage:', err);
+    }
+  }
 
   async function getProfile(userId: string) {
     console.log('Starting profile fetch for user:', userId);
@@ -150,7 +177,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log("Current session state:", currentSession ? "Active" : "No active session");
 
       console.log("Attempting signIn with email:", email);
-      
+
       const signInPromise = supabase.auth.signInWithPassword({
         email,
         password,
@@ -205,6 +232,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function signOut() {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
+
+    // Ensure Supabase client storage is cleared so the next open requires login
+    clearSupabaseLocalStorage();
+
+    // Force navigation to login (refresh). Using href ensures a full reload
+    // so any in-memory state is reset.
+    try {
+      window.location.href = '/login';
+    } catch (err) {
+      // Fallback: reload the page
+      window.location.reload();
+    }
   }
 
   const value: AuthContextType = {

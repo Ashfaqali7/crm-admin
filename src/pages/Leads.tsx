@@ -63,7 +63,7 @@ export function Leads() {
       message.error('Failed to update lead');
     }
   };
-  
+
   const columns = [
     {
       title: 'Name',
@@ -72,9 +72,9 @@ export function Leads() {
       sorter: (a: Lead, b: Lead) => a.name.localeCompare(b.name),
     },
     {
-      title:"Company",
+      title: "Company",
       dataIndex: 'company',
-      key:"company",
+      key: "company",
       sorter: (a: Lead, b: Lead) => (a.company || '').localeCompare(b.company || ''),
     },
     {
@@ -131,91 +131,89 @@ export function Leads() {
   ];
 
   return (
-    <div>
-      <Card>
-        <Space style={{ marginBottom: 16, justifyContent: 'space-between', width: '100%' }}>
-          <Title level={2}>Leads</Title>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => setModalVisible(true)}
-          >
-            Add Lead
-          </Button>
-        </Space>
-
-        <Table
-          dataSource={leads}
-          columns={columns}
-          rowKey="id"
-          loading={loading}
-        />
-
-        <Modal
-          title="Add New Lead"
-          open={modalVisible}
-          onOk={() => form.submit()}
-          onCancel={() => {
-            setModalVisible(false);
-            form.resetFields();
-          }}
+    <div style={{ padding: 16 }}>
+      <Space style={{ marginBottom: 16, justifyContent: 'space-between', width: '100%' }}>
+        <Title level={2}>Leads</Title>
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          onClick={() => setModalVisible(true)}
         >
-          <Form
-            form={form}
-            layout="vertical"
-            onFinish={handleCreate}
+          Add Lead
+        </Button>
+      </Space>
+
+      <Table
+        dataSource={leads}
+        columns={columns}
+        rowKey="id"
+        loading={loading}
+      />
+
+      <Modal
+        title="Add New Lead"
+        open={modalVisible}
+        onOk={() => form.submit()}
+        onCancel={() => {
+          setModalVisible(false);
+          form.resetFields();
+        }}
+      >
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleCreate}
+        >
+          <Form.Item
+            name="name"
+            label="Name"
+            rules={[{ required: true, message: 'Please input the name!' }]}
           >
-            <Form.Item
-              name="name"
-              label="Name"
-              rules={[{ required: true, message: 'Please input the name!' }]}
-            >
-              <Input />
-            </Form.Item>
+            <Input />
+          </Form.Item>
 
-            <Form.Item
-              name="email"
-              label="Email"
-              rules={[
-                { type: 'email', message: 'Please input a valid email!' }
-              ]}
-            >
-              <Input />
-            </Form.Item>
+          <Form.Item
+            name="email"
+            label="Email"
+            rules={[
+              { type: 'email', message: 'Please input a valid email!' }
+            ]}
+          >
+            <Input />
+          </Form.Item>
 
-            <Form.Item
-              name="phone"
-              label="Phone"
-            >
-              <Input />
-            </Form.Item>
+          <Form.Item
+            name="phone"
+            label="Phone"
+          >
+            <Input />
+          </Form.Item>
 
-            <Form.Item
-              name="status"
-              label="Status"
-              initialValue="New"
-            >
-              <Select>
-                <Option value="New">New</Option>
-                <Option value="Contacted">Contacted</Option>
-                <Option value="Qualified">Qualified</Option>
-                <Option value="Lost">Lost</Option>
-              </Select>
-            </Form.Item>
+          <Form.Item
+            name="status"
+            label="Status"
+            initialValue="New"
+          >
+            <Select>
+              <Option value="New">New</Option>
+              <Option value="Contacted">Contacted</Option>
+              <Option value="Qualified">Qualified</Option>
+              <Option value="Lost">Lost</Option>
+            </Select>
+          </Form.Item>
 
-            <Form.Item
-              name="assigned_to"
-              label="Assign To"
-            >
-              <Select allowClear>
-                {users.map(user => (
-                  <Option key={user.id} value={user.id}>{user.full_name}</Option>
-                ))}
-              </Select>
-            </Form.Item>
-          </Form>
-        </Modal>
-      </Card>
+          <Form.Item
+            name="assigned_to"
+            label="Assign To"
+          >
+            <Select allowClear>
+              {users.map(user => (
+                <Option key={user.id} value={user.id}>{user.full_name}</Option>
+              ))}
+            </Select>
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 }
