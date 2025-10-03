@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, type SetStateAction } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import {
   Table,
   Card,
@@ -18,7 +18,6 @@ import {
   Statistic,
   Empty,
 } from 'antd';
-import { createStyles } from 'antd-style';
 import {
   PlusOutlined,
   UserOutlined,
@@ -29,28 +28,10 @@ import {
 } from '@ant-design/icons';
 import { leadsService } from '../services/leadsService';
 import { usersService } from '../services/usersService';
-import { StatusTag } from '../components/StatusTag';
-import { useMediaQuery } from '../hooks/useMediaQuery';
 import type { Lead, Profile, Status } from '../types';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
-
-const useStyles = createStyles(({ token }) => ({
-  container: {},
-  headerRow: {
-    marginBottom: token.marginXL,
-  },
-  statsRow: {
-    marginBottom: token.marginXL,
-  },
-  filtersCard: {
-    marginBottom: token.marginLG,
-  },
-  statusSelect: { width: 140 },
-  assignedSelect: { width: 160 },
-  colRight: { textAlign: 'right' },
-}));
 
 export function Leads() {
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -61,8 +42,6 @@ export function Leads() {
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [form] = Form.useForm();
   const { token } = theme.useToken();
-  const { styles } = useStyles();
-  const isMobile = useMediaQuery('(max-width: 768px)');
 
   const fetchLeads = async () => {
     try {
@@ -144,53 +123,45 @@ export function Leads() {
     Lost: { color: 'red', label: 'Lost' },
   };
 
-  const expandedRowRender = (record: Lead) => (
-    <Space direction="vertical">
-      <div><Text strong>Company: </Text><Text type="secondary">{record.company || 'Not specified'}</Text></div>
-      <div><Text strong>Phone: </Text><Space size="small"><PhoneOutlined /> <Text>{record.phone || 'Not provided'}</Text></Space></div>
-      <div><Text strong>Status: </Text><StatusTag status={record.status} /></div>
-      <div><Text strong>Assigned: </Text>{record.assigned_to ? <Space><Avatar size="small" icon={<UserOutlined />} />{users.find(u => u.id === record.assigned_to)?.full_name}</Space> : <Text type="secondary">Unassigned</Text>}</div>
-    </Space>
-  );
-
   const columns = [
+
     {
       title: 'Name',
       dataIndex: 'name',
       sorter: (a: Lead, b: Lead) => a.name.localeCompare(b.name),
-      render: (value: string, record: Lead) => <Text strong>{value}</Text>,
-      responsive: ['xs' as const],
+      render: (name: string) => <Text strong>{name}</Text>,
+      width: 120,
     },
     {
       title: 'Company',
       dataIndex: 'company',
       sorter: (a: Lead, b: Lead) => (a.company || '').localeCompare(b.company || ''),
-      render: (value: string | undefined, record: Lead) => (
-        <Text type="secondary">{value || 'Not specified'}</Text>
+      render: (company: string) => (
+        <Text type="secondary">{company || 'Not specified'}</Text>
       ),
-      responsive: ['lg' as const],
+      width: 120,
     },
     {
       title: 'Email',
       dataIndex: 'email',
-      render: (value: string, record: Lead) => (
+      render: (email: string) => (
         <Space size="small">
           <MailOutlined />
-          <Text>{value}</Text>
+          <Text>{email}</Text>
         </Space>
       ),
-      responsive: ['xs' as const],
+      width: 250,
     },
     {
       title: 'Phone',
       dataIndex: 'phone',
-      render: (value: string, record: Lead) => (
+      render: (phone: string) => (
         <Space size="small">
           <PhoneOutlined />
-          <Text>{value || 'Not provided'}</Text>
+          <Text>{phone || 'Not provided'}</Text>
         </Space>
       ),
-      responsive: ['sm' as const],
+      width: 180,
     },
     {
       title: 'Status',
@@ -199,40 +170,33 @@ export function Leads() {
         text: label,
         value,
       })),
-      render: (value: Status, record: Lead) => (
+      render: (status: Status, record: Lead) => (
         <Select
-          value={value}
+          value={status}
           onChange={val => handleUpdate(record.id, { status: val })}
           size="small"
-          className={styles.statusSelect}
+          style={{ width: 140 }}
         >
-          <Option value="New">
-            <StatusTag status="New" />
-          </Option>
-          <Option value="Contacted">
-            <StatusTag status="Contacted" />
-          </Option>
-          <Option value="Qualified">
-            <StatusTag status="Qualified" />
-          </Option>
-          <Option value="Lost">
-            <StatusTag status="Lost" />
-          </Option>
+          {Object.entries(statusOptions).map(([value, { color, label }]) => (
+            <Option key={value} value={value}>
+              <Tag color={color}>{label}</Tag>
+            </Option>
+          ))}
         </Select>
       ),
-      responsive: ['sm' as const],
+      width: 100,
     },
     {
       title: 'Assigned',
       dataIndex: 'assigned_to',
-      render: (value: string | null, record: Lead) => (
+      render: (assignedTo: string, record: Lead) => (
         <Select
-          value={value || undefined}
+          value={assignedTo}
           onChange={val => handleUpdate(record.id, { assigned_to: val })}
           allowClear
           placeholder="Assign user"
           size="small"
-          className={styles.assignedSelect}
+          style={{ width: 160 }}
         >
           {users.map(user => (
             <Option key={user.id} value={user.id}>
@@ -244,14 +208,14 @@ export function Leads() {
           ))}
         </Select>
       ),
-      responsive: ['md' as const],
+      width: 100,
     },
   ];
 
   return (
-    <div className={styles.container}>
+    <div >
       {/* Header */}
-      <Row className={styles.headerRow} justify="space-between" align="middle">
+      <Row justify="space-between" align="middle" style={{ marginBottom: token.marginXL }}>
         <Col>
           <Title level={3}>Leads Management</Title>
           <Text type="secondary">Manage and track your sales leads</Text>
@@ -268,7 +232,7 @@ export function Leads() {
       </Row>
 
       {/* Stats */}
-      <Row className={styles.statsRow} gutter={[16, 16]} justify="space-between">
+      <Row gutter={[16, 16]} justify="space-between" style={{ marginBottom: token.marginXL }}>
         {[
           { key: 'total', title: 'Total Leads', value: stats.total, color: token.colorPrimary },
           { key: 'new', title: 'New Leads', value: stats.newLeads, color: token.colorInfo },
@@ -276,7 +240,7 @@ export function Leads() {
           { key: 'qualified', title: 'Qualified', value: stats.qualified, color: token.colorSuccess },
           { key: 'lost', title: 'Lost Leads', value: stats.lost, color: token.colorError },
         ].map(stat => (
-          <Col xs={24} sm={12} md={4} key={stat.key}>
+          <Col xs={24} sm={12} md={4} key={stat.key}  >
             <Card>
               <Statistic title={stat.title} value={stat.value} valueStyle={{ color: stat.color }} />
             </Card>
@@ -285,14 +249,14 @@ export function Leads() {
       </Row>
 
       {/* Filters */}
-      <Card className={styles.filtersCard}>
+      <Card style={{ marginBottom: token.marginLG }}>
         <Row gutter={[16, 16]} align="middle">
           <Col xs={24} sm={12} md={6}>
             <Input
               placeholder="Search leads..."
               prefix={<SearchOutlined />}
               value={searchText}
-              onChange={(e: { target: { value: SetStateAction<string>; }; }) => setSearchText(e.target.value)}
+              onChange={e => setSearchText(e.target.value)}
               allowClear
             />
           </Col>
@@ -316,7 +280,7 @@ export function Leads() {
               Refresh
             </Button>
           </Col>
-          <Col flex="auto" className={styles.colRight}>
+          <Col flex="auto" style={{ textAlign: 'right' }}>
             <Text type="secondary">
               {filteredLeads.length} of {leads.length} leads
             </Text>
@@ -336,9 +300,6 @@ export function Leads() {
           columns={columns}
           rowKey="id"
           loading={loading}
-          size={isMobile ? 'small' : 'middle'}
-          scroll={{ x: true }}
-          expandable={isMobile ? { expandedRowRender, expandRowByClick: true } : undefined}
           pagination={{
             pageSize: 10,
             showSizeChanger: true,
@@ -386,18 +347,11 @@ export function Leads() {
 
           <Form.Item name="status" label="Initial Status" initialValue="New">
             <Select>
-              <Option value="New">
-                <StatusTag status="New" />
-              </Option>
-              <Option value="Contacted">
-                <StatusTag status="Contacted" />
-              </Option>
-              <Option value="Qualified">
-                <StatusTag status="Qualified" />
-              </Option>
-              <Option value="Lost">
-                <StatusTag status="Lost" />
-              </Option>
+              {Object.entries(statusOptions).map(([value, { color, label }]) => (
+                <Option key={value} value={value}>
+                  <Tag color={color}>{label}</Tag>
+                </Option>
+              ))}
             </Select>
           </Form.Item>
 
@@ -418,3 +372,4 @@ export function Leads() {
     </div>
   );
 }
+

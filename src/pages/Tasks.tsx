@@ -11,7 +11,6 @@ import {
   Typography,
   Space,
   message,
-  Tag,
   Spin,
   Empty,
   Input as SearchInput,
@@ -27,19 +26,204 @@ import {
   DeleteOutlined,
   CalendarOutlined,
   DownOutlined,
-  CheckCircleOutlined,
 } from '@ant-design/icons';
 import { tasksService } from '../services/tasksService';
 import { leadsService } from '../services/leadsService';
 import type { Task, Lead } from '../types';
 import dayjs from 'dayjs';
 import { StatusTag } from '../components/StatusTag';
+import { createStyles } from 'antd-style';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
 const { TextArea } = Input;
 
+const useStyles = createStyles(({ token }) => ({
+  container: {
+    "&&": {
+      minHeight: "100vh",
+      "@media (max-width: 768px)": {
+        padding: token.paddingSM,
+      },
+    },
+  },
+
+  header: {
+    "&&": {
+      marginBottom: token.marginXXL,
+      justifyContent: "space-between",
+      width: "100%",
+      flexWrap: "wrap",
+      gap: token.paddingLG,
+      "@media (max-width: 768px)": {
+        marginBottom: token.marginLG,
+      },
+    },
+  },
+
+  title: {
+    "&&": {
+      margin: 0,
+      color: token.colorTextHeading,
+      fontWeight: token.fontWeightStrong,
+    },
+  },
+
+  searchContainer: {
+    "&&": {
+      display: "flex",
+      gap: token.marginSM,
+      flexWrap: "wrap",
+      "@media (max-width: 768px)": {
+        width: "100%",
+      },
+    },
+  },
+
+  searchInput: {
+    "&&": {
+      minWidth: 200,
+      "@media (max-width: 768px)": {
+        flex: 1,
+        minWidth: 0,
+      },
+    },
+  },
+
+  filterButton: {
+    "&&": {
+      "@media (max-width: 768px)": {
+        flex: 1,
+      },
+    },
+  },
+
+  addButton: {
+    "&&": {
+      "@media (max-width: 768px)": {
+        flex: 1,
+      },
+    },
+  },
+
+  spinnerContainer: {
+    "&&": {
+      textAlign: "center",
+      padding: token.paddingXL,
+      minHeight: token.controlHeightLG * 4,
+    },
+  },
+
+  listItem: {
+    "&&": {
+      padding: token.paddingLG,
+      marginBottom: token.marginSM,
+      backgroundColor: token.colorBgContainer,
+      border: `${token.lineWidth}px ${token.lineType} ${token.colorBorder}`,
+      borderRadius: token.borderRadiusLG,
+      transition: `background-color ${token.motionDurationMid}`,
+      "&:hover": {
+        backgroundColor: token.colorFillSecondary,
+      },
+      "@media (max-width: 768px)": {
+        padding: token.paddingSM,
+      },
+    },
+  },
+
+  taskHeader: {
+    "&&": {
+      display: "flex",
+      alignItems: "center",
+      gap: token.paddingSM,
+      minWidth: 0,
+      flex: 1,
+    },
+  },
+
+  taskTitle: {
+    "&&": {
+      margin: 0,
+      fontSize: token.fontSizeLG,
+      lineHeight: token.lineHeightLG,
+      flex: 1,
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+      whiteSpace: "nowrap",
+    },
+  },
+
+  taskDescription: {
+    "&&": {
+      display: "block",
+      marginTop: token.marginXS,
+      color: token.colorTextSecondary,
+      lineHeight: token.lineHeight,
+    },
+  },
+
+  taskInfo: {
+    "&&": {
+      display: "flex",
+      justifyContent: "space-between",
+      marginTop: token.marginSM,
+      width: "100%",
+      flexWrap: "wrap",
+      gap: token.paddingSM,
+    },
+  },
+
+  taskInfoText: {
+    "&&": {
+      color: token.colorTextSecondary,
+      fontSize: token.fontSizeSM,
+    },
+  },
+
+  modalHeader: {
+    "&&": {
+      fontSize: token.fontSizeLG,
+      fontWeight: token.fontWeightStrong,
+      color: token.colorTextHeading,
+    },
+  },
+
+  modalContent: {
+    "&&": {
+      marginTop: token.marginLG,
+    },
+  },
+
+  dueDateContainer: {
+    "&&": {
+      gap: token.paddingXXS,
+    },
+  },
+
+  doneTask: {
+    "&&": {
+      backgroundColor: token.colorFillAlter,
+    },
+  },
+
+  pendingTask: {
+    "&&": {
+      backgroundColor: token.colorBgContainer,
+    },
+  },
+
+  taskActions: {
+    "&&": {
+      display: "flex",
+      gap: token.marginXS,
+    },
+  },
+}));
+
+
+
 export function Tasks() {
+  const { styles } = useStyles();
   const { token } = theme.useToken();
 
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -147,7 +331,7 @@ export function Tasks() {
     const isToday = date.isSame(dayjs(), 'day');
 
     return (
-      <Space style={{ gap: token.paddingXXS }}>
+      <Space className={styles.dueDateContainer}>
         <CalendarOutlined
           style={{
             color: isOverdue ? token.colorError : isToday ? token.colorWarning : token.colorTextSecondary,
@@ -200,102 +384,68 @@ export function Tasks() {
   ];
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: token.colorBgLayout
-    }}>
-      <div
-
-      >
-        <Space
-          style={{
-            marginBottom: token.marginXXL,
-            justifyContent: 'space-between',
-            width: '100%',
-            flexWrap: 'wrap',
-            gap: token.paddingLG,
-          }}
-        >
-          <Title
-            level={3}
-            style={{
-              margin: 0,
-              color: token.colorTextHeading,
-              fontWeight: token.fontWeightStrong
-            }}
-          >
-            Tasks
-          </Title>
-          <Space>
-            <SearchInput
-              placeholder="Search tasks..."
-              prefix={<SearchOutlined />}
-              value={searchQuery}
-              onChange={(e: { target: { value: SetStateAction<string>; }; }) => setSearchQuery(e.target.value)}
-              style={{ width: 200 }}
-              allowClear
-            />
-            <Dropdown menu={{ items: dropdownItems }} trigger={['click']}>
-              <Button>
-                Filter: {filterStatus || 'All'} <DownOutlined />
-              </Button>
-            </Dropdown>
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={() => {
-                setEditingTaskId(null);
-                setModalVisible(true);
-                form.resetFields();
-              }}
-            >
-              Add Task
+    <div className={styles.container}>
+      <Space className={styles.header}>
+        <Title level={3} className={styles.title}>
+          Tasks
+        </Title>
+        <Space className={styles.searchContainer}>
+          <SearchInput
+            placeholder="Search tasks..."
+            prefix={<SearchOutlined />}
+            value={searchQuery}
+            onChange={(e: { target: { value: SetStateAction<string>; }; }) => setSearchQuery(e.target.value)}
+            className={styles.searchInput}
+            allowClear
+          />
+          <Dropdown menu={{ items: dropdownItems }} trigger={['click']}>
+            <Button className={styles.filterButton}>
+              Filter: {filterStatus || 'All'} <DownOutlined />
             </Button>
-          </Space>
-        </Space>
-
-        {loading ? (
-          <div style={{
-            textAlign: 'center',
-            padding: token.paddingXL,
-            minHeight: token.controlHeightLG * 4
-          }}>
-            <Spin size="large" />
-          </div>
-        ) : (
-          <List
-            dataSource={filteredTasks}
-            locale={{
-              emptyText: (
-                <Empty
-                  image={Empty.PRESENTED_IMAGE_SIMPLE}
-                  description="No tasks yet. Create one to get started!"
-                >
-                  <Button
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    onClick={() => setModalVisible(true)}
-                  >
-                    Add Task
-                  </Button>
-                </Empty>
-              ),
+          </Dropdown>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => {
+              setEditingTaskId(null);
+              setModalVisible(true);
+              form.resetFields();
             }}
-            renderItem={(task) => (
-              <List.Item
-                style={{
-                  padding: token.paddingLG,
-                  marginBottom: token.marginSM,
-                  border: `${token.lineWidth}px ${token.lineType} ${token.colorBorder}`,
-                  borderRadius: token.borderRadiusLG,
-                  transition: `background-color ${token.motionDurationMid}`,
-                  backgroundColor: task.status === 'Done' ? token.colorFillAlter : token.colorBgContainer,
-                }}
-                onMouseEnter={(e: { currentTarget: { style: { backgroundColor: string; }; }; }) => (e.currentTarget.style.backgroundColor = token.colorFillSecondary)}
-                onMouseLeave={(e: { currentTarget: { style: { backgroundColor: string; }; }; }) =>
-                  (e.currentTarget.style.backgroundColor = task.status === 'Done' ? token.colorFillAlter : token.colorBgContainer)
-                }
-                actions={[
+            className={styles.addButton}
+          >
+            Add Task
+          </Button>
+        </Space>
+      </Space>
+
+      {loading ? (
+        <div className={styles.spinnerContainer}>
+          <Spin size="large" />
+        </div>
+      ) : (
+        <List
+          dataSource={filteredTasks}
+          locale={{
+            emptyText: (
+              <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description="No tasks yet. Create one to get started!"
+              >
+                <Button
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  onClick={() => setModalVisible(true)}
+                >
+                  Add Task
+                </Button>
+              </Empty>
+            ),
+          }}
+          renderItem={(task) => (
+            <List.Item
+              className={`${styles.listItem} ${task.status === 'Done' ? styles.doneTask : styles.pendingTask}`}
+              actions={[
+                <div className={styles.taskActions}>
                   <Tooltip title="Edit Task">
                     <Button
                       type="text"
@@ -303,7 +453,7 @@ export function Tasks() {
                       onClick={() => handleEdit(task)}
                       aria-label={`Edit task: ${task.title}`}
                     />
-                  </Tooltip>,
+                  </Tooltip>
                   <Tooltip title="Delete Task">
                     <Button
                       type="text"
@@ -312,191 +462,149 @@ export function Tasks() {
                       onClick={() => handleDelete(task.id)}
                       aria-label={`Delete task: ${task.title}`}
                     />
-                  </Tooltip>,
-                ]}
-              >
-                <Space direction="vertical" style={{ flex: 1, width: '100%' }}>
-                  <Space align="center" style={{ justifyContent: 'space-between', width: '100%' }}>
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: token.paddingSM,
-                      minWidth: 0,
-                      flex: 1
-                    }}>
-                      <Checkbox
-                        checked={task.status === 'Done'}
-                        onChange={(e) => handleStatusChange(task.id, e.target.checked)}
-                        aria-label={`Toggle status for task: ${task.title}`}
-                      />
-                      <Title
-                        level={5}
-                        style={{
-                          margin: 0,
-                          textDecoration: task.status === 'Done' ? 'line-through' : 'none',
-                          color: token.colorText,
-                          fontSize: token.fontSizeLG,
-                          lineHeight: token.lineHeightLG,
-                          flex: 1,
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap'
-                        }}
-                      >
-                        {task.title}
-                      </Title>
-                    </div>
-                    <StatusTag status={task.status} />
-                  </Space>
-                  {task.description && (
-                    <Text
-                      type="secondary"
+                  </Tooltip>
+                </div>
+              ]}
+            >
+              <Space direction="vertical" style={{ flex: 1, width: '100%' }}>
+                <Space align="center" style={{ justifyContent: 'space-between', width: '100%' }}>
+                  <div className={styles.taskHeader}>
+                    <Checkbox
+                      checked={task.status === 'Done'}
+                      onChange={(e) => handleStatusChange(task.id, e.target.checked)}
+                      aria-label={`Toggle status for task: ${task.title}`}
+                    />
+                    <Title
+                      level={5}
+                      className={styles.taskTitle}
                       style={{
-                        display: 'block',
-                        marginTop: token.marginXS,
-                        color: token.colorTextSecondary,
-                        lineHeight: token.lineHeight
+                        textDecoration: task.status === 'Done' ? 'line-through' : 'none',
+                        color: token.colorText,
                       }}
                     >
-                      {task.description}
-                    </Text>
-                  )}
-                  <Space
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      marginTop: token.marginSM,
-                      width: '100%',
-                      flexWrap: 'wrap',
-                      gap: token.paddingSM
-                    }}
-                    size={token.marginSM}
-                  >
-                    <Text
-                      type="secondary"
-                      style={{
-                        color: token.colorTextSecondary,
-                        fontSize: token.fontSizeSM
-                      }}
-                    >
-                      <strong>Lead:</strong> {leads.find((l) => l.id === task.lead_id)?.name || 'Unknown'}
-                    </Text>
-                    {renderDueDate(task.due_date)}
-                  </Space>
+                      {task.title}
+                    </Title>
+                  </div>
+                  <StatusTag status={task.status} />
                 </Space>
-              </List.Item>
-            )}
-          />
-        )}
+                {task.description && (
+                  <Text type="secondary" className={styles.taskDescription}>
+                    {task.description}
+                  </Text>
+                )}
+                <Space className={styles.taskInfo} size={token.marginSM}>
+                  <Text type="secondary" className={styles.taskInfoText}>
+                    <strong>Lead:</strong> {leads.find((l) => l.id === task.lead_id)?.name || 'Unknown'}
+                  </Text>
+                  {renderDueDate(task.due_date)}
+                </Space>
+              </Space>
+            </List.Item>
+          )}
+        />
+      )}
 
-        <Modal
-          title={
-            <div style={{
-              fontSize: token.fontSizeLG,
-              fontWeight: token.fontWeightStrong,
-              color: token.colorTextHeading
-            }}>
-              {editingTaskId ? 'Edit Task' : 'Add New Task'}
-            </div>
+      <Modal
+        title={<div className={styles.modalHeader}>
+          {editingTaskId ? 'Edit Task' : 'Add New Task'}
+        </div>}
+        open={modalVisible}
+        onOk={() => form.submit()}
+        onCancel={() => {
+          setModalVisible(false);
+          setEditingTaskId(null);
+          form.resetFields();
+        }}
+        okText={editingTaskId ? 'Update Task' : 'Create Task'}
+        okButtonProps={{
+          loading,
+          type: 'primary',
+          size: 'middle'
+        }}
+        cancelButtonProps={{
+          type: 'default',
+          size: 'middle'
+        }}
+        width={640}
+        styles={{
+          header: {
+            padding: token.paddingLG,
+            paddingBottom: token.paddingMD,
+            borderBottom: `${token.lineWidth}px ${token.lineType} ${token.colorBorderSecondary}`
+          },
+          body: {
+            padding: token.paddingLG
+          },
+          footer: {
+            padding: token.paddingMD,
+            paddingTop: token.paddingLG,
+            borderTop: `${token.lineWidth}px ${token.lineType} ${token.colorBorderSecondary}`
           }
-          open={modalVisible}
-          onOk={() => form.submit()}
-          onCancel={() => {
-            setModalVisible(false);
-            setEditingTaskId(null);
-            form.resetFields();
-          }}
-          okText={editingTaskId ? 'Update Task' : 'Create Task'}
-          okButtonProps={{
-            loading,
-            type: 'primary',
-            size: 'middle'
-          }}
-          cancelButtonProps={{
-            type: 'default',
-            size: 'middle'
-          }}
-          width={640}
-          styles={{
-            header: {
-              padding: token.paddingLG,
-              paddingBottom: token.paddingMD,
-              borderBottom: `${token.lineWidth}px ${token.lineType} ${token.colorBorderSecondary}`
-            },
-            body: {
-              padding: token.paddingLG
-            },
-            footer: {
-              padding: token.paddingMD,
-              paddingTop: token.paddingLG,
-              borderTop: `${token.lineWidth}px ${token.lineType} ${token.colorBorderSecondary}`
-            }
-          }}
+        }}
+      >
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleCreateOrUpdate}
+          className={styles.modalContent}
+          size="middle"
         >
-          <Form
-            form={form}
-            layout="vertical"
-            onFinish={handleCreateOrUpdate}
-            style={{ marginTop: token.marginLG }}
-            size="middle"
+          <Form.Item name="id" noStyle>
+            <Input type="hidden" />
+          </Form.Item>
+          <Form.Item
+            name="title"
+            label="Task Title"
+            rules={[{ required: true, message: 'Please input the task title!' }]}
+            tooltip="Enter a concise title for the task"
           >
-            <Form.Item name="id" noStyle>
-              <Input type="hidden" />
-            </Form.Item>
+            <Input placeholder="e.g., Follow up with client" />
+          </Form.Item>
+          <Form.Item
+            name="description"
+            label="Description"
+            rules={[{ required: true, message: 'Please input the task description!' }]}
+            tooltip="Provide details about the task"
+          >
+            <TextArea rows={4} placeholder="e.g., Schedule a call to discuss contract terms" />
+          </Form.Item>
+          <Form.Item
+            name="lead_id"
+            label="Related Lead"
+            rules={[{ required: true, message: 'Please select a lead!' }]}
+          >
+            <Select placeholder="Select a lead" showSearch optionFilterProp="children">
+              {leads.map((lead) => (
+                <Option key={lead.id} value={lead.id}>
+                  {lead.name}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+          <Form.Item
+            name="due_date"
+            label="Due Date"
+            rules={[{ required: true, message: 'Please select a due date!' }]}
+            tooltip="Select the task's due date"
+          >
+            <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
+          </Form.Item>
+          {editingTaskId && (
             <Form.Item
-              name="title"
-              label="Task Title"
-              rules={[{ required: true, message: 'Please input the task title!' }]}
-              tooltip="Enter a concise title for the task"
+              name="status"
+              label="Status"
+              initialValue="Pending"
+              rules={[{ required: true, message: 'Please select a status!' }]}
             >
-              <Input placeholder="e.g., Follow up with client" />
-            </Form.Item>
-            <Form.Item
-              name="description"
-              label="Description"
-              rules={[{ required: true, message: 'Please input the task description!' }]}
-              tooltip="Provide details about the task"
-            >
-              <TextArea rows={4} placeholder="e.g., Schedule a call to discuss contract terms" />
-            </Form.Item>
-            <Form.Item
-              name="lead_id"
-              label="Related Lead"
-              rules={[{ required: true, message: 'Please select a lead!' }]}
-            >
-              <Select placeholder="Select a lead" showSearch optionFilterProp="children">
-                {leads.map((lead) => (
-                  <Option key={lead.id} value={lead.id}>
-                    {lead.name}
-                  </Option>
-                ))}
+              <Select placeholder="Select task status">
+                <Option value="Pending">Pending</Option>
+                <Option value="In Progress">In Progress</Option>
+                <Option value="Done">Done</Option>
               </Select>
             </Form.Item>
-            <Form.Item
-              name="due_date"
-              label="Due Date"
-              rules={[{ required: true, message: 'Please select a due date!' }]}
-              tooltip="Select the task's due date"
-            >
-              <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
-            </Form.Item>
-            {editingTaskId && (
-              <Form.Item
-                name="status"
-                label="Status"
-                initialValue="Pending"
-                rules={[{ required: true, message: 'Please select a status!' }]}
-              >
-                <Select placeholder="Select task status">
-                  <Option value="Pending">Pending</Option>
-                  <Option value="In Progress">In Progress</Option>
-                  <Option value="Done">Done</Option>
-                </Select>
-              </Form.Item>
-            )}
-          </Form>
-        </Modal>
-      </div>
+          )}
+        </Form>
+      </Modal>
     </div>
   );
 }
