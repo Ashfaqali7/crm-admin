@@ -105,7 +105,7 @@ export function Deals() {
     }
 
     const activeId = active.id as string;
-    const overId = over.id as string | undefined;
+    const overId = over.id as string;
 
     const draggedDeal = deals.find((deal) => deal.id === activeId);
     if (!draggedDeal) {
@@ -114,19 +114,30 @@ export function Deals() {
     }
 
     try {
+      // Check if overId is a stage name (dropped on column)
       if (stages.includes(overId as typeof stages[number])) {
         const newStage = overId as typeof stages[number];
         if (draggedDeal.stage !== newStage) {
           await dealsService.update(draggedDeal.id, { stage: newStage });
           await fetchDeals();
+          theme.showBanner(`Deal moved to ${newStage}`, 'success');
         }
       } else {
+        // overId is a deal ID (dropped on another deal)
         const overDeal = deals.find((d) => d.id === overId);
-        if (overDeal && activeId !== overDeal.id) {
-          const oldIndex = deals.findIndex((d) => d.id === activeId);
-          const newIndex = deals.findIndex((d) => d.id === overId);
-          const newDeals = arrayMove(deals, oldIndex, newIndex);
-          setDeals(newDeals);
+        if (overDeal) {
+          // Move the deal to the same stage as the deal it was dropped on
+          if (draggedDeal.stage !== overDeal.stage) {
+            await dealsService.update(draggedDeal.id, { stage: overDeal.stage });
+            await fetchDeals();
+            theme.showBanner(`Deal moved to ${overDeal.stage}`, 'success');
+          } else if (activeId !== overDeal.id) {
+            // Reorder within the same stage
+            const oldIndex = deals.findIndex((d) => d.id === activeId);
+            const newIndex = deals.findIndex((d) => d.id === overId);
+            const newDeals = arrayMove(deals, oldIndex, newIndex);
+            setDeals(newDeals);
+          }
         }
       }
     } catch (error) {

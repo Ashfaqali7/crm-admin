@@ -55,6 +55,8 @@ export function DealCard({ deal, style: parentStyle, openAddDealModal }: DealCar
     <div
       ref={setNodeRef}
       style={style}
+      {...listeners}
+      {...attributes}
       aria-label={`Deal: ${memoizedDeal.title}, Stage: ${memoizedDeal.stage}`}
     >
       <Card
@@ -65,6 +67,7 @@ export function DealCard({ deal, style: parentStyle, openAddDealModal }: DealCar
           border: `1px solid ${stageConfig.color}`,
           borderRadius: 6,
           background: '#fff',
+          cursor: isDragging ? 'grabbing' : 'grab',
         }}
         bodyStyle={{ padding: 12 }}
       >
@@ -74,16 +77,7 @@ export function DealCard({ deal, style: parentStyle, openAddDealModal }: DealCar
               {memoizedDeal.title}
             </Title>
             <Tooltip title="Drag to move">
-              <div
-                {...listeners}
-                {...attributes}
-                role="button"
-                tabIndex={0}
-                aria-label="Drag handle"
-                style={{ cursor: 'grab', display: 'inline-flex', alignItems: 'center', padding: 6 }}
-              >
-                <DragOutlined />
-              </div>
+              <DragOutlined style={{ fontSize: 16, color: '#8c8c8c' }} />
             </Tooltip>
           </div>
           <Space direction="horizontal" size={8} style={{ width: '100%' }}>
@@ -107,7 +101,8 @@ export function DealCard({ deal, style: parentStyle, openAddDealModal }: DealCar
               <Button
                 type="link"
                 icon={<EditOutlined />}
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   openAddDealModal?.(memoizedDeal.id);
                 }}
                 aria-label={`Edit deal: ${memoizedDeal.title}`}

@@ -67,6 +67,7 @@ export function DealColumn({ title, deals = [], style, openAddDealModal }: DealC
       aria-label={`Deals in ${title} stage`}
     >
       <SortableContext
+        id={title}
         items={sortedDeals.map((deal) => String(deal.id))}
         strategy={verticalListSortingStrategy}
       >
