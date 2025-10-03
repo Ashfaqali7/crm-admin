@@ -18,6 +18,7 @@ import {
   Statistic,
   Empty,
 } from 'antd';
+import { createStyles } from 'antd-style';
 import {
   PlusOutlined,
   UserOutlined,
@@ -29,10 +30,27 @@ import {
 import { leadsService } from '../services/leadsService';
 import { usersService } from '../services/usersService';
 import { StatusTag } from '../components/StatusTag';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 import type { Lead, Profile, Status } from '../types';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
+
+const useStyles = createStyles(({ token }) => ({
+  container: {},
+  headerRow: {
+    marginBottom: token.marginXL,
+  },
+  statsRow: {
+    marginBottom: token.marginXL,
+  },
+  filtersCard: {
+    marginBottom: token.marginLG,
+  },
+  statusSelect: { width: 140 },
+  assignedSelect: { width: 160 },
+  colRight: { textAlign: 'right' },
+}));
 
 export function Leads() {
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -43,6 +61,8 @@ export function Leads() {
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [form] = Form.useForm();
   const { token } = theme.useToken();
+  const { styles } = useStyles();
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   const fetchLeads = async () => {
     try {
@@ -124,45 +144,53 @@ export function Leads() {
     Lost: { color: 'red', label: 'Lost' },
   };
 
-  const columns = [
+  const expandedRowRender = (record: Lead) => (
+    <Space direction="vertical">
+      <div><Text strong>Company: </Text><Text type="secondary">{record.company || 'Not specified'}</Text></div>
+      <div><Text strong>Phone: </Text><Space size="small"><PhoneOutlined /> <Text>{record.phone || 'Not provided'}</Text></Space></div>
+      <div><Text strong>Status: </Text><StatusTag status={record.status} /></div>
+      <div><Text strong>Assigned: </Text>{record.assigned_to ? <Space><Avatar size="small" icon={<UserOutlined />} />{users.find(u => u.id === record.assigned_to)?.full_name}</Space> : <Text type="secondary">Unassigned</Text>}</div>
+    </Space>
+  );
 
+  const columns = [
     {
       title: 'Name',
       dataIndex: 'name',
       sorter: (a: Lead, b: Lead) => a.name.localeCompare(b.name),
-      render: (name: string) => <Text strong>{name}</Text>,
-      width: 120,
+      render: (value: string, record: Lead) => <Text strong>{value}</Text>,
+      responsive: ['xs' as const],
     },
     {
       title: 'Company',
       dataIndex: 'company',
       sorter: (a: Lead, b: Lead) => (a.company || '').localeCompare(b.company || ''),
-      render: (company: string) => (
-        <Text type="secondary">{company || 'Not specified'}</Text>
+      render: (value: string | undefined, record: Lead) => (
+        <Text type="secondary">{value || 'Not specified'}</Text>
       ),
-      width: 120,
+      responsive: ['lg' as const],
     },
     {
       title: 'Email',
       dataIndex: 'email',
-      render: (email: string) => (
+      render: (value: string, record: Lead) => (
         <Space size="small">
           <MailOutlined />
-          <Text>{email}</Text>
+          <Text>{value}</Text>
         </Space>
       ),
-      width: 250,
+      responsive: ['xs' as const],
     },
     {
       title: 'Phone',
       dataIndex: 'phone',
-      render: (phone: string) => (
+      render: (value: string, record: Lead) => (
         <Space size="small">
           <PhoneOutlined />
-          <Text>{phone || 'Not provided'}</Text>
+          <Text>{value || 'Not provided'}</Text>
         </Space>
       ),
-      width: 180,
+      responsive: ['sm' as const],
     },
     {
       title: 'Status',
@@ -171,12 +199,12 @@ export function Leads() {
         text: label,
         value,
       })),
-      render: (status: Status, record: Lead) => (
+      render: (value: Status, record: Lead) => (
         <Select
-          value={status}
+          value={value}
           onChange={val => handleUpdate(record.id, { status: val })}
           size="small"
-          style={{ width: 140 }}
+          className={styles.statusSelect}
         >
           <Option value="New">
             <StatusTag status="New" />
@@ -192,19 +220,19 @@ export function Leads() {
           </Option>
         </Select>
       ),
-      width: 100,
+      responsive: ['sm' as const],
     },
     {
       title: 'Assigned',
       dataIndex: 'assigned_to',
-      render: (assignedTo: string, record: Lead) => (
+      render: (value: string | null, record: Lead) => (
         <Select
-          value={assignedTo}
+          value={value || undefined}
           onChange={val => handleUpdate(record.id, { assigned_to: val })}
           allowClear
           placeholder="Assign user"
           size="small"
-          style={{ width: 160 }}
+          className={styles.assignedSelect}
         >
           {users.map(user => (
             <Option key={user.id} value={user.id}>
@@ -216,14 +244,14 @@ export function Leads() {
           ))}
         </Select>
       ),
-      width: 100,
+      responsive: ['md' as const],
     },
   ];
 
   return (
-    <div >
+    <div className={styles.container}>
       {/* Header */}
-      <Row justify="space-between" align="middle" style={{ marginBottom: token.marginXL }}>
+      <Row className={styles.headerRow} justify="space-between" align="middle">
         <Col>
           <Title level={3}>Leads Management</Title>
           <Text type="secondary">Manage and track your sales leads</Text>
@@ -240,7 +268,7 @@ export function Leads() {
       </Row>
 
       {/* Stats */}
-      <Row gutter={[16, 16]} justify="space-between" style={{ marginBottom: token.marginXL }}>
+      <Row className={styles.statsRow} gutter={[16, 16]} justify="space-between">
         {[
           { key: 'total', title: 'Total Leads', value: stats.total, color: token.colorPrimary },
           { key: 'new', title: 'New Leads', value: stats.newLeads, color: token.colorInfo },
@@ -248,7 +276,7 @@ export function Leads() {
           { key: 'qualified', title: 'Qualified', value: stats.qualified, color: token.colorSuccess },
           { key: 'lost', title: 'Lost Leads', value: stats.lost, color: token.colorError },
         ].map(stat => (
-          <Col xs={24} sm={12} md={4} key={stat.key}  >
+          <Col xs={24} sm={12} md={4} key={stat.key}>
             <Card>
               <Statistic title={stat.title} value={stat.value} valueStyle={{ color: stat.color }} />
             </Card>
@@ -257,7 +285,7 @@ export function Leads() {
       </Row>
 
       {/* Filters */}
-      <Card style={{ marginBottom: token.marginLG }}>
+      <Card className={styles.filtersCard}>
         <Row gutter={[16, 16]} align="middle">
           <Col xs={24} sm={12} md={6}>
             <Input
@@ -288,7 +316,7 @@ export function Leads() {
               Refresh
             </Button>
           </Col>
-          <Col flex="auto" style={{ textAlign: 'right' }}>
+          <Col flex="auto" className={styles.colRight}>
             <Text type="secondary">
               {filteredLeads.length} of {leads.length} leads
             </Text>
@@ -308,6 +336,9 @@ export function Leads() {
           columns={columns}
           rowKey="id"
           loading={loading}
+          size={isMobile ? 'small' : 'middle'}
+          scroll={{ x: true }}
+          expandable={isMobile ? { expandedRowRender, expandRowByClick: true } : undefined}
           pagination={{
             pageSize: 10,
             showSizeChanger: true,
@@ -387,4 +418,3 @@ export function Leads() {
     </div>
   );
 }
-
