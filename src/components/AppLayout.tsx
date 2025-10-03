@@ -112,10 +112,6 @@ const useStyles = createStyles(({ token, css }) => ({
     transition: all ${token.motionDurationMid};
   `,
   contentWrapper: css`
-    background: ${token.colorBgContainer};
-    border-radius: ${token.borderRadiusLG}px;
     min-height: 100%;
-    box-shadow: ${token.boxShadowSecondary};
-    border: 1px solid ${token.colorBorderSecondary};
   `,
 }));

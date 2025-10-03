@@ -141,27 +141,7 @@ export function DealCard({ deal, style: parentStyle, openAddDealModal }: DealCar
             </Tooltip>
           </div>
 
-          {/* Stage indicator */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: token.marginXS,
-          }}>
-            <Tag
-              color={stageConfig.status}
-              style={{
-                margin: 0,
-                borderRadius: token.borderRadiusSM,
-                fontSize: token.fontSizeSM,
-                padding: `${token.paddingXXS}px ${token.paddingXS}px`,
-              }}
-            >
-              {stageConfig.icon}
-              <span style={{ marginLeft: token.marginXXS }}>
-                {stageConfig.status}
-              </span>
-            </Tag>
-          </div>
+
 
           {/* Deal information */}
           <Space direction="vertical" style={{ width: '100%' }} size={token.marginXS}>

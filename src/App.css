@@ -1,7 +1,7 @@
 #root {
   max-width: 100dvw; 
   width: calc(100%);
-  text-align: center;
+  text-align: start;
   overflow-x: hidden;
 }
 
