@@ -27,6 +27,7 @@ A modern, responsive CRM (Customer Relationship Management) dashboard built with
 - **Deal Pipeline**: Drag-and-drop interface for managing sales deals
 - **Task Management**: Assign and track tasks with due dates
 - **User Management**: Admin panel for managing team members
+- **Data Export**: Export leads, deals, tasks, and users to CSV, Excel, or JSON formats
 - **Responsive Design**: Works on desktop, tablet, and mobile devices
 - **Dark/Light Theme**: Toggle between color schemes with custom theme tokens
 - **Protected Routes**: Role-based route protection for admin/user access control
