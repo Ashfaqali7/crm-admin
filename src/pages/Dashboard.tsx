@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Card, Row, Col, Statistic, Table, Typography, theme, Tabs } from 'antd';
+import { Card, Row, Col, Statistic, Table, Typography, theme, Tabs, Button, Space } from 'antd';
 import { Column, Pie, Line, } from '@ant-design/charts';
 import { leadsService } from '../services/leadsService';
 import { dealsService } from '../services/dealsService';
@@ -7,6 +7,8 @@ import { tasksService } from '../services/tasksService';
 import type { Lead, Deal, Task } from '../types';
 import { createStyles } from 'antd-style';
 import type { TableProps } from 'antd';
+import { DownloadOutlined } from '@ant-design/icons';
+import ExportButton from '../components/ExportButton';
 
 const { Title, Text } = Typography;
 
@@ -172,6 +174,16 @@ const useStyles = createStyles(({ token }) => ({
       color: token.colorText,
       "@media (max-width: 768px)": {
         fontSize: token.fontSize,
+      },
+    },
+  },
+
+  chartValue: {
+    "&&": {
+      fontSize: 32,
+      fontWeight: 'bold',
+      "@media (max-width: 768px)": {
+        fontSize: 28,
       },
     },
   },
@@ -475,6 +487,38 @@ export function Dashboard() {
       render: (t: string) => new Date(t).toLocaleDateString(),
       responsive: ['lg'],
     },
+  ];
+
+  const leadExportColumns = [
+    { key: 'name', title: 'Name' },
+    { key: 'email', title: 'Email' },
+    { key: 'company', title: 'Company' },
+    { key: 'status', title: 'Status' },
+    { 
+      key: 'created_at', 
+      title: 'Created At',
+      render: (value: string) => new Date(value).toLocaleDateString()
+    }
+  ];
+
+  const taskExportColumns = [
+    { key: 'title', title: 'Title' },
+    { 
+      key: 'lead_id', 
+      title: 'Lead',
+      render: (value: string, record: any) => record.lead?.name || 'Unknown'
+    },
+    { 
+      key: 'due_date', 
+      title: 'Due Date',
+      render: (value: string) => value ? new Date(value).toLocaleDateString() : ''
+    },
+    { key: 'status', title: 'Status' },
+    { 
+      key: 'created_at', 
+      title: 'Created At',
+      render: (value: string) => new Date(value).toLocaleDateString()
+    }
   ];
 
   // Chart configs
@@ -798,6 +842,14 @@ export function Dashboard() {
                 padding: token.paddingLG,
               }
             }}
+            extra={
+              <ExportButton 
+                data={recentTasks} 
+                columns={taskExportColumns} 
+                filename="recent-tasks-export" 
+                disabled={recentTasks.length === 0}
+              />
+            }
           >
             <div className={styles.tableContainer}>
               <Table
@@ -822,6 +874,14 @@ export function Dashboard() {
                 padding: token.paddingLG,
               }
             }}
+            extra={
+              <ExportButton 
+                data={recentLeads} 
+                columns={leadExportColumns} 
+                filename="recent-leads-export" 
+                disabled={recentLeads.length === 0}
+              />
+            }
           >
             <div className={styles.tableContainer}>
               <Table

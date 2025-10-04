@@ -33,6 +33,7 @@ import type { Task, Lead } from '../types';
 import dayjs from 'dayjs';
 import { StatusTag } from '../components/StatusTag';
 import { createStyles } from 'antd-style';
+import ExportButton from '../components/ExportButton';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -383,6 +384,30 @@ export function Tasks() {
     );
   }, [tasks, searchQuery, filterStatus]);
 
+  const exportColumns = [
+    { key: 'title', title: 'Title' },
+    { key: 'description', title: 'Description' },
+    { 
+      key: 'lead_id', 
+      title: 'Lead',
+      render: (value: string) => {
+        const lead = leads.find(l => l.id === value);
+        return lead ? lead.name : 'Unknown Lead';
+      }
+    },
+    { 
+      key: 'due_date', 
+      title: 'Due Date',
+      render: (value: string) => new Date(value).toLocaleDateString()
+    },
+    { key: 'status', title: 'Status' },
+    { 
+      key: 'created_at', 
+      title: 'Created At',
+      render: (value: string) => new Date(value).toLocaleDateString()
+    }
+  ];
+
   const dropdownItems: MenuProps['items'] = [
     {
       key: 'all',
@@ -426,6 +451,12 @@ export function Tasks() {
               Filter: {filterStatus || 'All'} <DownOutlined />
             </Button>
           </Dropdown>
+          <ExportButton 
+            data={filteredTasks} 
+            columns={exportColumns} 
+            filename="tasks-export" 
+            disabled={filteredTasks.length === 0}
+          />
           <Button
             type="primary"
             icon={<PlusOutlined />}

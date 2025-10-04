@@ -20,11 +20,10 @@ import { useDebounce } from '../hooks/useDebounce';
 import { DEAL_STAGES } from '../constants/deals';
 import { StatusTag } from '../components/StatusTag';
 import type { Deal, Lead } from '../types';
+import ExportButton from '../components/ExportButton';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
-
-
 
 export function Deals() {
   // Access Ant Design theme tokens for consistent styling
@@ -175,6 +174,29 @@ export function Deals() {
     }));
   }, [groupedDeals]);
 
+  const exportColumns = [
+    { key: 'title', title: 'Title' },
+    { 
+      key: 'lead_id', 
+      title: 'Lead',
+      render: (value: string) => {
+        const lead = leads.find(l => l.id === value);
+        return lead ? lead.name : 'Unknown Lead';
+      }
+    },
+    { 
+      key: 'value', 
+      title: 'Value',
+      render: (value: number) => `$${value.toLocaleString()}`
+    },
+    { key: 'stage', title: 'Stage' },
+    { 
+      key: 'created_at', 
+      title: 'Created At',
+      render: (value: string) => new Date(value).toLocaleDateString()
+    }
+  ];
+
   return (
     <div style={{
       minHeight: '100vh',
@@ -273,6 +295,12 @@ export function Deals() {
                 shape="circle"
               />
             </Tooltip>
+            <ExportButton 
+              data={filteredDeals} 
+              columns={exportColumns} 
+              filename="deals-export" 
+              disabled={filteredDeals.length === 0}
+            />
             <Button
               type="primary"
               icon={<PlusOutlined />}

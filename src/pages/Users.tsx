@@ -5,6 +5,7 @@ import type { Profile, Role } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { ReloadOutlined, CrownOutlined, TeamOutlined } from '@ant-design/icons';
+import ExportButton from '../components/ExportButton';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -46,6 +47,17 @@ export function Users() {
       message.error('Failed to update user role');
     }
   };
+
+  const exportColumns = [
+    { key: 'full_name', title: 'Name' },
+    { key: 'role', title: 'Role' },
+    { key: 'phone', title: 'Phone' },
+    { 
+      key: 'created_at', 
+      title: 'Created At',
+      render: (value: string) => new Date(value).toLocaleDateString()
+    }
+  ];
 
   const columns = [
     {
@@ -185,7 +197,7 @@ export function Users() {
           padding: token.paddingLG
         }}
       >
-        {/* Header Section */}
+        {/* Header Section */ }
         <div style={{
           marginBottom: token.marginXXL,
           display: 'flex',
@@ -248,6 +260,12 @@ export function Users() {
           </div>
 
           <div style={{ display: 'flex', gap: token.paddingSM, alignItems: 'center' }}>
+            <ExportButton 
+              data={users} 
+              columns={exportColumns} 
+              filename="users-export" 
+              disabled={users.length === 0}
+            />
             <Tooltip title="Refresh users">
               <Button
                 icon={<ReloadOutlined />}
@@ -260,7 +278,7 @@ export function Users() {
           </div>
         </div>
 
-        {/* Statistics Cards */}
+        {/* Statistics Cards */ }
         <div style={{
           marginBottom: token.marginLG,
           display: 'grid',
@@ -328,7 +346,7 @@ export function Users() {
           </Card>
         </div>
 
-        {/* Users Table */}
+        {/* Users Table */ }
         <Table
           dataSource={users}
           columns={columns}

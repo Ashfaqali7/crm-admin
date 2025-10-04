@@ -29,6 +29,7 @@ import {
 import { leadsService } from '../services/leadsService';
 import { usersService } from '../services/usersService';
 import type { Lead, Profile, Status } from '../types';
+import ExportButton from '../components/ExportButton';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -123,8 +124,29 @@ export function Leads() {
     Lost: { color: 'red', label: 'Lost' },
   };
 
-  const columns = [
+  const exportColumns = [
+    { key: 'name', title: 'Name' },
+    { key: 'company', title: 'Company' },
+    { key: 'email', title: 'Email' },
+    { key: 'phone', title: 'Phone' },
+    { key: 'status', title: 'Status' },
+    { 
+      key: 'assigned_to', 
+      title: 'Assigned To',
+      render: (value: string) => {
+        if (!value) return 'Unassigned';
+        const user = users.find(u => u.id === value);
+        return user ? user.full_name : 'Unknown User';
+      }
+    },
+    { 
+      key: 'created_at', 
+      title: 'Created At',
+      render: (value: string) => new Date(value).toLocaleDateString()
+    }
+  ];
 
+  const columns = [
     {
       title: 'Name',
       dataIndex: 'name',
@@ -221,13 +243,21 @@ export function Leads() {
           <Text type="secondary">Manage and track your sales leads</Text>
         </Col>
         <Col>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => setModalVisible(true)}
-          >
-            Add New Lead
-          </Button>
+          <Space>
+            <ExportButton 
+              data={filteredLeads} 
+              columns={exportColumns} 
+              filename="leads-export" 
+              disabled={filteredLeads.length === 0}
+            />
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => setModalVisible(true)}
+            >
+              Add New Lead
+            </Button>
+          </Space>
         </Col>
       </Row>
 
@@ -372,4 +402,3 @@ export function Leads() {
     </div>
   );
 }
-
